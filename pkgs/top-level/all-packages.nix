@@ -1850,6 +1850,8 @@ with pkgs;
 
   httm = darwin.apple_sdk_11_0.callPackage ../tools/filesystems/httm { };
 
+  hyperhdr = libsForQt5.callPackage ../by-name/hy/hyperhdr/package.nix { };
+
   hyperpotamus = callPackage ../tools/misc/hyperpotamus { };
 
   immich-cli = callPackage ../tools/misc/immich-cli { };
@@ -12473,6 +12475,8 @@ with pkgs;
   qmk_hid = callPackage ../tools/misc/qmk_hid { };
 
   qmarkdowntextedit = libsForQt5.callPackage  ../development/libraries/qmarkdowntextedit { };
+
+  qmqtt = libsForQt5.callPackage ../by-name/qm/qmqtt/package.nix { };
 
   qodem = callPackage ../tools/networking/qodem { };
 
