@@ -1,0 +1,77 @@
+diff --git a/deb/usr/share/applications/wireguird.desktop b/deb/usr/share/applications/wireguird.desktop
+index 3a4ed4a..457baef 100644
+--- a/deb/usr/share/applications/wireguird.desktop
++++ b/deb/usr/share/applications/wireguird.desktop
+@@ -3,6 +3,6 @@ Encoding=UTF-8
+ Version=1.1
+ Type=Application
+ Terminal=false
+-Exec=/usr/local/bin/wireguird
++Exec=wireguird
+ Name=Wireguird
+-Icon=/opt/wireguird/Icon/128x128/wireguard.png
++Icon=@icon_path@/128x128/wireguard.png
+diff --git a/deb/usr/share/polkit-1/actions/wireguird.policy b/deb/usr/share/polkit-1/actions/wireguird.policy
+index feddec4..3ac12b9 100644
+--- a/deb/usr/share/polkit-1/actions/wireguird.policy
++++ b/deb/usr/share/polkit-1/actions/wireguird.policy
+@@ -12,7 +12,7 @@
+         <allow_inactive>auth_admin</allow_inactive>
+         <allow_active>auth_admin</allow_active>
+     </defaults>
+-    <annotate key="org.freedesktop.policykit.exec.path">/opt/wireguird/wireguird</annotate>
++    <annotate key="org.freedesktop.policykit.exec.path">@out@/bin/wireguird</annotate>
+     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+     </action>
+ </policyconfig>
+diff --git a/gui/gui.go b/gui/gui.go
+index c2b17dd..d985225 100755
+--- a/gui/gui.go
++++ b/gui/gui.go
+@@ -18,7 +18,7 @@ const (
+ 	Version     = "1.1.0"
+ 	Repo        = "https://github.com/UnnoTed/wireguird"
+ 	TunnelsPath = "/etc/wireguard/"
+-	IconPath    = "/opt/wireguird/Icon/"
++	IconPath    = "@icon_path@"
+ )
+ 
+ var (
+diff --git a/main.go b/main.go
+index eefa82f..745d8b3 100755
+--- a/main.go
++++ b/main.go
+@@ -58,7 +58,7 @@ func createTray(application *gtk.Application) (*appindicator.Indicator, error) {
+ 	}
+ 
+ 	indicator := appindicator.New(application.GetApplicationID(), "wireguard_off", appindicator.CategoryApplicationStatus)
+-	indicator.SetIconThemePath("/opt/wireguird/Icon")
++	indicator.SetIconThemePath("@icon_path@")
+ 	indicator.SetTitle("Wireguird")
+ 	// indicator.SetLabel("Wireguird", "")
+ 	indicator.SetStatus(appindicator.StatusActive)
+diff --git a/wireguird.glade b/wireguird.glade
+index c6fae4f..5d93e3a 100755
+--- a/wireguird.glade
++++ b/wireguird.glade
+@@ -156,17 +156,17 @@
+   <object class="GtkImage" id="icon_delete">
+     <property name="visible">True</property>
+     <property name="can-focus">False</property>
+-    <property name="pixbuf">/opt/wireguird/Icon/delete.png</property>
++    <property name="pixbuf">@icon_path@/delete.png</property>
+   </object>
+   <object class="GtkImage" id="icon_tunnel">
+     <property name="visible">True</property>
+     <property name="can-focus">False</property>
+-    <property name="pixbuf">/opt/wireguird/Icon/add_tunnel.png</property>
++    <property name="pixbuf">@icon_path@/add_tunnel.png</property>
+   </object>
+   <object class="GtkImage" id="icon_zip">
+     <property name="visible">True</property>
+     <property name="can-focus">False</property>
+-    <property name="pixbuf">/opt/wireguird/Icon/zip.png</property>
++    <property name="pixbuf">@icon_path@/zip.png</property>
+   </object>
+   <object class="GtkApplicationWindow" id="main_window">
+     <property name="width-request">650</property>
