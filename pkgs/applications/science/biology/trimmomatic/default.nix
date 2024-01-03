@@ -1,20 +1,21 @@
 { lib
 , stdenv
-, ant
 , fetchFromGitHub
+, ant
 , jdk11_headless
 , jre
 , makeWrapper
+, canonicalize-jars-hook
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "trimmomatic";
   version = "0.39";
 
   src = fetchFromGitHub {
     owner = "usadellab";
     repo = "Trimmomatic";
-    rev = "v${version}";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-u+ubmacwPy/vsEi0YQCv0fTnVDesQvqeQDEwCbS8M6I=";
   };
 
@@ -24,7 +25,12 @@ stdenv.mkDerivation rec {
       --replace 'source="1.5" target="1.5"' 'release="11"'
   '';
 
-  nativeBuildInputs = [ jdk11_headless ant makeWrapper ];
+  nativeBuildInputs = [
+    ant
+    jdk11_headless
+    makeWrapper
+    canonicalize-jars-hook
+  ];
 
   buildPhase = ''
     runHook preBuild
@@ -37,11 +43,11 @@ stdenv.mkDerivation rec {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin $out/share
-    cp dist/jar/trimmomatic-${version}.jar $out/share/
-    cp -r adapters $out/share/
+    install -Dm644 dist/jar/trimmomatic-*.jar -t $out/share/trimmomatic
+    cp -r adapters $out/share/trimmomatic
+
     makeWrapper ${jre}/bin/java $out/bin/trimmomatic \
-      --add-flags "-cp $out/share/trimmomatic-${version}.jar org.usadellab.trimmomatic.Trimmomatic"
+      --add-flags "-jar $out/share/trimmomatic/trimmomatic-*.jar"
 
     runHook postInstall
   '';
@@ -59,8 +65,9 @@ stdenv.mkDerivation rec {
     license = lib.licenses.gpl3Only;
     sourceProvenance = [
       lib.sourceTypes.fromSource
-      lib.sourceTypes.binaryBytecode  # source bundles dependencies as jars
+      lib.sourceTypes.binaryBytecode # source bundles dependencies as jars
     ];
+    mainProgram = "trimmomatic";
     maintainers = [ lib.maintainers.kupac ];
   };
-}
+})

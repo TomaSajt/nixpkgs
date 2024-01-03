@@ -1,20 +1,36 @@
-{lib, stdenv, fetchurl, ant, jdk}:
+{ lib
+, stdenv
+, fetchurl
+, ant
+, jdk
+, canonicalize-jars-hook
+}:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "martyr";
   version = "0.3.9";
+
   src = fetchurl {
-    url = "mirror://sourceforge/martyr/${pname}-${version}.tar.gz";
-    sha256 = "1ks8j413bcby345kmq1i7av8kwjvz5vxdn1zpv0p7ywxq54i4z59";
+    url = "mirror://sourceforge/martyr/martyr-${finalAttrs.version}.tar.gz";
+    hash = "sha256-qXwSScGd+3PBvj/Y1nf5W/KJtjox4DoLGX6xNQKRSM8=";
   };
 
-  buildInputs = [ ant jdk ];
+  buildInputs = [
+    ant
+    jdk
+    canonicalize-jars-hook # fix manifest creation date
+  ];
 
-  buildPhase = "ant";
+  buildPhase = ''
+    runHook preBuild
+    ant
+    runHook postBuild
+  '';
 
   installPhase = ''
-    mkdir -p "$out/share/java"
-    cp -v *.jar "$out/share/java"
+    runHook preInstall
+    install -Dm644 martyr.jar -t $out/share/java
+    runHook postInstall
   '';
 
   meta = {
@@ -22,4 +38,4 @@ stdenv.mkDerivation rec {
     homepage = "https://martyr.sourceforge.net/";
     license = lib.licenses.lgpl21;
   };
-}
+})

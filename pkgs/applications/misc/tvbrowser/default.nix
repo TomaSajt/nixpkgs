@@ -1,31 +1,47 @@
 { lib
-, fetchurl
 , stdenv
+, fetchurl
 , fetchzip
 , ant
 , jdk
 , makeWrapper
+, canonicalize-jars-hook
+, xdg-utils
+, gnused
 , callPackage
 }:
 
 let
-  minimalJavaVersion = "11";
-
   newsPlugin = fetchurl {
     url = "https://www.tvbrowser.org/data/uploads/1372016422809_543/NewsPlugin.jar";
     hash = "sha256-5XoypuMd2AFBE2SJ6EdECuvq6D81HLLuu9UoA9kcKAM=";
   };
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "tvbrowser";
   version = "4.2.7";
 
   src = fetchzip {
-    url = "mirror://sourceforge/${pname}/TV-Browser%20Releases%20%28Java%20${minimalJavaVersion}%20and%20higher%29/${version}/${pname}_${version}_src.zip";
+    url = "downloads.sourceforge.net/tvbrowser/tvbrowser_${finalAttrs.version}_src.zip";
     hash = "sha256-dmNfI6T0MU7UtMH+C/2hiAeDwZlFCB4JofQViZezoqI=";
   };
 
-  nativeBuildInputs = [ ant jdk makeWrapper ];
+  nativeBuildInputs = [
+    ant
+    jdk
+    makeWrapper
+    canonicalize-jars-hook
+  ];
+
+  postPatch = ''
+    # Reminder: paths to the nix store inside jars can't be detected automatically, so use programs from $PATH
+    substituteInPlace src/tvbrowser/core/protocolhandler/ProtocolHandler.java \
+        --replace "/usr/bin/xdg-mime" "xdg-mime" \
+        --replace "/usr/bin/xdg-desktop-menu" "xdg-desktop-menu" \
+        --replace "/usr/bin/sed" "sed" \
+        --replace "/usr/share/tvbrowser" $out/share/tvbrowser \
+        --replace "/usr/share/applications" $out/share/applications
+  '';
 
   buildPhase = ''
     runHook preBuild
@@ -44,28 +60,25 @@ stdenv.mkDerivation rec {
 
     mkdir -p $out/share/applications
     mv -t $out/share/applications $out/share/tvbrowser/tvbrowser.desktop
-    sed -e 's|=imgs/|='$out'/share/tvbrowser/imgs/|'  \
-        -e 's|=tvbrowser.sh|='$out'/bin/tvbrowser|'  \
-        -i $out/share/applications/tvbrowser.desktop
+    substituteInPlace $out/share/applications/tvbrowser.desktop \
+        --replace "=imgs" "=$out/share/tvbrowser/imgs" \
+        --replace "=tvbrowser.sh" "=$out/bin/tvbrowser"
 
     for i in 16 32 48 128; do
-      mkdir -p $out/share/icons/hicolor/''${i}x''${i}/apps
-      ln -s $out/share/tvbrowser/imgs/tvbrowser$i.png  \
-          $out/share/icons/hicolor/''${i}x''${i}/apps/tvbrowser.png
+      mkdir -p "$out/share/icons/hicolor/"$i"x"$i"/apps"
+      ln -s "$out/share/tvbrowser/imgs/tvbrowser"$i".png" \
+          "$out/share/icons/hicolor/"$i"x"$i"/apps/tvbrowser.png"
     done
 
-    mkdir -p $out/bin
-    makeWrapper  \
-        $out/share/tvbrowser/tvbrowser.sh  \
-        $out/bin/tvbrowser  \
-        --prefix PATH : ${jdk}/bin  \
-        --prefix XDG_DATA_DIRS : $out/share  \
+    makeWrapper $out/share/tvbrowser/tvbrowser.sh $out/bin/tvbrowser \
+        --prefix PATH : ${lib.makeBinPath [ jdk xdg-utils gnused ]} \
+        --prefix XDG_DATA_DIRS : $out/share \
         --set PROGRAM_DIR $out/share/tvbrowser
 
     runHook postInstall
   '';
 
-  passthru.tests.startwindow = callPackage ./test.nix {};
+  passthru.tests.startwindow = callPackage ./test.nix { };
 
   meta = with lib; {
     description = "Electronic TV Program Guide";
@@ -76,7 +89,7 @@ stdenv.mkDerivation rec {
     license = licenses.gpl3Plus;
     platforms = platforms.linux;
     mainProgram = "tvbrowser";
-    maintainers = with maintainers; [ yarny ];
+    maintainers = with maintainers; [ yarny tomasajt ];
     longDescription = ''
       TV-Browser shows TV program data arranged like in printed
       TV programs after downloading it from the internet.
@@ -84,4 +97,4 @@ stdenv.mkDerivation rec {
       and to provide additional functionality.
     '';
   };
-}
+})

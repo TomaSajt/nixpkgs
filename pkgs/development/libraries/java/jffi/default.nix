@@ -1,18 +1,32 @@
-{ lib, stdenv, fetchFromGitHub, jdk, jre, ant, libffi, texinfo, pkg-config }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, ant
+, jdk
+, texinfo
+, pkg-config
+, libffi
+}:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "jffi";
   version = "1.3.12";
 
   src = fetchFromGitHub {
     owner = "jnr";
     repo = "jffi";
-    rev = "jffi-${version}";
-    sha256 = "sha256-U0pBoKewZEen7aH3rIvZ8dKKeXKE1+Z5WtfM0HK6/LQ=";
+    rev = "jffi-${finalAttrs.version}";
+    hash = "sha256-U0pBoKewZEen7aH3rIvZ8dKKeXKE1+Z5WtfM0HK6/LQ=";
   };
 
-  nativeBuildInputs = [ jdk ant texinfo pkg-config ];
-  buildInputs = [ libffi ] ;
+  nativeBuildInputs = [
+    ant
+    jdk
+    texinfo
+    pkg-config
+  ];
+
+  buildInputs = [ libffi ];
 
   buildPhase = ''
     # The pkg-config script in the build.xml doesn't work propery
@@ -45,4 +59,4 @@ stdenv.mkDerivation rec {
     license = licenses.asl20;
     maintainers = with maintainers; [ bachp ];
   };
-}
+})

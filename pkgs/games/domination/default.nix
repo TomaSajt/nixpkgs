@@ -1,12 +1,13 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchsvn
-# jdk8 is needed for building, but the game runs on newer jres as well
-, jdk8
-, jre
 , ant
+, jdk8 # jdk8 is needed for building, but the game runs on newer jres as well
+, jre
 , makeWrapper
 , makeDesktopItem
 , copyDesktopItems
+, canonicalize-jars-hook
 , nixosTests
 }:
 
@@ -23,8 +24,8 @@ let
     exec = "domination-map-editor";
     icon = "domination";
   };
-
-in stdenv.mkDerivation {
+in
+stdenv.mkDerivation {
   pname = "domination";
   version = "1.2.9";
 
@@ -39,10 +40,11 @@ in stdenv.mkDerivation {
   };
 
   nativeBuildInputs = [
-    jdk8
     ant
+    jdk8
     makeWrapper
     copyDesktopItems
+    canonicalize-jars-hook
   ];
 
   buildPhase = ''
@@ -52,26 +54,22 @@ in stdenv.mkDerivation {
     runHook postBuild
   '';
 
-  desktopItems = [
-    desktopItem
-    editorDesktopItem
-  ];
-
   installPhase = ''
     runHook preInstall
+
+    pushd build/game
+
     # Remove unnecessary files and launchers (they'd need to be wrapped anyway)
-    rm -r \
-      build/game/src.zip \
-      build/game/*.sh \
-      build/game/*.cmd \
-      build/game/*.exe \
-      build/game/*.app
+    rm -r src.zip *.sh *.cmd *.exe *.app *.command lib/._*
 
     mkdir -p $out/share/domination
-    cp -r build/game/* $out/share/domination/
+    cp -r * $out/share/domination/
+
+    install -Dm644 resources/icon.png $out/share/pixmaps/domination.png
+
+    popd
 
     # Reimplement the two launchers mentioned in Unix_shortcutSpec.xml with makeWrapper
-    mkdir -p $out/bin
     makeWrapper ${jre}/bin/java $out/bin/domination \
       --chdir "$out/share/domination" \
       --add-flags "-jar $out/share/domination/Domination.jar"
@@ -79,9 +77,13 @@ in stdenv.mkDerivation {
       --chdir "$out/share/domination" \
       --add-flags "-cp $out/share/domination/Domination.jar net.yura.domination.ui.swinggui.SwingGUIFrame"
 
-    install -Dm644 build/game/resources/icon.png $out/share/pixmaps/domination.png
     runHook postInstall
   '';
+
+  desktopItems = [
+    desktopItem
+    editorDesktopItem
+  ];
 
   passthru.tests = {
     domination-starts = nixosTests.domination;
@@ -99,9 +101,10 @@ in stdenv.mkDerivation {
     '';
     sourceProvenance = with sourceTypes; [
       fromSource
-      binaryBytecode  # source bundles dependencies as jars
+      binaryBytecode # source bundles dependencies as jars
     ];
-    license = licenses.gpl3;
+    license = licenses.gpl3Plus;
+    mainProgram = "domination";
     maintainers = with maintainers; [ fgaz ];
     platforms = platforms.all;
   };

@@ -1,45 +1,65 @@
-{ lib, stdenv, fetchgit, ant, jdk, makeWrapper, jre, coreutils, which }:
+{ lib
+, stdenv
+, fetchgit
+, ant
+, jdk
+, makeWrapper
+, canonicalize-jars-hook
+, jre
+, coreutils
+, which
+}:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "projectlibre";
   version = "1.7.0";
 
   src = fetchgit {
     url = "https://git.code.sf.net/p/projectlibre/code";
     rev = "0c939507cc63e9eaeb855437189cdec79e9386c2"; # version 1.7.0 was not tagged
-    sha256 = "0vy5vgbp45ai957gaby2dj1hvmbxfdlfnwcanwqm9f8q16qipdbq";
+    hash = "sha256-eLUbsQkYuVQxt4px62hzfdUNg2zCL/VOSVEVctfbxW8=";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
-  buildInputs = [ ant jdk ];
+  nativeBuildInputs = [
+    ant
+    jdk
+    makeWrapper
+    canonicalize-jars-hook # overlapped files, manifest creation date
+    # THIS MESSES UP THE CLASSPATH, BECAUSE OF LINEBREAKS
+  ];
+
   buildPhase = ''
     export ANT_OPTS=-Dbuild.sysclasspath=ignore
-    ${ant}/bin/ant -f openproj_build/build.xml
+    ant -f openproj_build/build.xml
   '';
 
-  resourcesPath = "openproj_build/resources";
-  desktopItem = "${resourcesPath}/projectlibre.desktop";
-
   installPhase = ''
-    mkdir -p $out/share/{applications,projectlibre/samples,pixmaps,doc/projectlibre} $out/bin
+    runHook preInstall
 
-    substitute $resourcesPath/projectlibre $out/bin/projectlibre \
-      --replace "\"/usr/share/projectlibre\"" "\"$out/share/projectlibre\""
-    chmod +x $out/bin/projectlibre
-    wrapProgram $out/bin/projectlibre \
-     --prefix PATH : "${jre}/bin:${coreutils}/bin:${which}/bin"
+    mkdir -p $out/share/{projectlibre/samples,doc/projectlibre}
+    resourcesPath=openproj_build/resources
 
     cp -R openproj_build/dist/* $out/share/projectlibre
     cp -R openproj_build/license $out/share/doc/projectlibre
-    cp $desktopItem $out/share/applications
-    cp $resourcesPath/projectlibre.png $out/share/pixmaps
     cp -R $resourcesPath/samples/* $out/share/projectlibre/samples
+    install -Dm644 $resourcesPath/projectlibre.desktop -t $out/share/applications
+    install -Dm644 $resourcesPath/projectlibre.png -t $out/share/pixmaps
+    install -Dm755 $resourcesPath/projectlibre -t $out/bin
+
+    substituteInPlace $out/bin/projectlibre \
+        --replace "\"/usr/share/projectlibre\"" "\"$out/share/projectlibre\""
+
+    wrapProgram $out/bin/projectlibre \
+        --prefix PATH : ${lib.makeBinPath [ jre coreutils which ]}
+
+    runHook postInstall
   '';
 
-  meta = with lib; {
-    homepage = "https://www.projectlibre.com/";
+  meta = {
     description = "Project-Management Software similar to MS-Project";
-    maintainers = [ maintainers.Mogria ];
-    license = licenses.cpal10;
+    homepage = "https://www.projectlibre.com/";
+    license = lib.licenses.cpal10;
+    mainProgram = "projectlibre";
+    maintainers = with lib.maintainers; [ Mogria tomasajt ];
   };
 }

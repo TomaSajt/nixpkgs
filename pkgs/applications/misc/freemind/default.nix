@@ -1,25 +1,41 @@
-{ lib, stdenv, fetchurl, jdk, jre, ant }:
+{ lib
+, stdenv
+, fetchurl
+, ant
+, jdk
+, jre
+, canonicalize-jars-hook
+}:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "freemind";
   version = "1.0.1";
 
   src = fetchurl {
-    url = "mirror://sourceforge/freemind/freemind-src-${version}.tar.gz";
-    sha256 = "06c6pm7hpwh9hbmyah3lj2wp1g957x8znfwc5cwygsi7dc98b0h1";
+    url = "mirror://sourceforge/freemind/freemind-src-${finalAttrs.version}.tar.gz";
+    hash = "sha256-AYKFEmsn6uc5K4w7+1E/Jb1wuZB0QOXrggnyC0+9hhk=";
   };
 
-  buildInputs = [ jdk ant ];
+  nativeBuildInputs = [
+    ant
+    jdk
+    canonicalize-jars-hook # .properties file present
+  ];
 
   preConfigure = ''
     chmod +x check_for_duplicate_resources.sh
     sed 's,/bin/bash,${stdenv.shell},' -i check_for_duplicate_resources.sh
+  '';
+
+  buildPhase = ''
+    runHook preBuild
 
     ## work around javac encoding errors
     export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8"
-  '';
+    ant dist
 
-  buildPhase = "ant dist";
+    runHook postBuild
+  '';
 
   installPhase = ''
     mkdir -p $out/{bin,nix-support}
@@ -39,4 +55,4 @@ stdenv.mkDerivation rec {
     license = licenses.gpl2Plus;
     platforms = platforms.linux;
   };
-}
+})

@@ -6,33 +6,28 @@
 , afflib
 , openssl
 , zlib
-, openjdk
+, jdk
 , perl
 , ant
 }:
 
-stdenv.mkDerivation rec {
+let
   version = "4.12.1";
-  pname = "sleuthkit";
 
-  sleuthsrc = fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "sleuthkit";
     repo = "sleuthkit";
-    rev = "${pname}-${version}";
+    rev = "sleuthkit-${version}";
     hash = "sha256-q51UY2lIcLijycNaq9oQIwUXpp/1mfc3oPN4syOPF44=";
   };
 
   # Fetch libraries using a fixed output derivation
-  rdeps = stdenv.mkDerivation rec {
+  rdeps = stdenv.mkDerivation {
+    name = "sleuthkit-${version}-deps";
 
-    version = "1.0";
-    pname = "sleuthkit-deps";
-    nativeBuildInputs = [
-      openjdk
-      ant
-    ];
+    inherit src; # WIP WIP WIP
 
-    src = sleuthsrc;
+    nativeBuildInputs = [ ant jdk ];
 
     # unpack, build, install
     dontConfigure = true;
@@ -48,7 +43,6 @@ stdenv.mkDerivation rec {
     '';
 
     installPhase = ''
-      export IVY_HOME=$NIX_BUILD_TOP/.ant
       mkdir -m 755 -p $out/bindings/java
       cp -r bindings/java/lib $out/bindings/java
       mkdir -m 755 -p $out/case-uco/java
@@ -58,21 +52,21 @@ stdenv.mkDerivation rec {
     '';
 
     outputHashMode = "recursive";
-    outputHash = "0fq7v6zlgybg4v6k9wqjlk4gaqgjrpihbnr182vaqriihflav2s8";
+    outputHash = "sha256-mc/KQrwn3xpPI0ngOLcpoQDaJJm/rM8XgaX//5PiRZk=";
     outputHashAlgo = "sha256";
   };
-
-  src = sleuthsrc;
+in
+stdenv.mkDerivation {
+  pname = "sleuthkit";
+  inherit version src;
 
   postPatch = ''
     substituteInPlace tsk/img/ewf.cpp --replace libewf_handle_read_random libewf_handle_read_buffer_at_offset
   '';
 
-  enableParallelBuilding = true;
-
   nativeBuildInputs = [
     autoreconfHook
-    openjdk
+    jdk
     perl
     ant
     rdeps
@@ -85,14 +79,11 @@ stdenv.mkDerivation rec {
     zlib
   ];
 
-  # Hack to fix the RPATH
-  preFixup = ''
-    rm -rf */.libs
-  '';
+  enableParallelBuilding = true;
 
-  postUnpack = ''
+  preConfigure = ''
     export IVY_HOME="$NIX_BUILD_TOP/.ant"
-    export JAVA_HOME="${openjdk}"
+    export JAVA_HOME="${jdk}"
     export ant_args="-Doffline=true -Ddefault-jar-location=$IVY_HOME/lib"
 
     # pre-positioning these jar files allows -Doffline=true to work
@@ -105,15 +96,22 @@ stdenv.mkDerivation rec {
     chmod -R 755 $IVY_HOME
   '';
 
+  # Hack to fix the RPATH
+  preFixup = ''
+    rm -rf */.libs
+  '';
+
+  passthru = { inherit rdeps; };
+
   meta = with lib; {
     description = "A forensic/data recovery tool";
     homepage = "https://www.sleuthkit.org/";
-    changelog = "https://github.com/sleuthkit/sleuthkit/releases/tag/sleuthkit-${version}";
+    changelog = "https://github.com/sleuthkit/sleuthkit/releases/tag/${src.rev}";
     maintainers = with maintainers; [ raskin gfrascadorio ];
     platforms = platforms.linux;
     sourceProvenance = with sourceTypes; [
       fromSource
-      binaryBytecode  # dependencies
+      binaryBytecode # dependencies
     ];
     license = licenses.ipl10;
   };
