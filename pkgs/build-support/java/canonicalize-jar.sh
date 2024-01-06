@@ -2,11 +2,14 @@
 canonicalizeJar() {
     local input="$1"
     echo "canonicalizing $input"
-    mkdir -p "$input-tmp"
+    # -q|--quiet
+    # -F|--fix: fixes archive when it has some small problems
+    @zip@ -qF "$input" --out "$input.fix"
+    mv "$input.fix" "$input"
+    # -qq: even quieter
+    # -o: overrides existing files (when there are overlapping files in the archive)
+    @unzip@ -qqo "$input" -d "$input-tmp"
     pushd "$input-tmp" >/dev/null
-    # Uses 7zz to extract jar to avoid the zipbomb-detection of unzip
-    # -y: confirm prompt when encountering overlapped files
-    @zz@ x "$input" -y >/dev/null
     if [ -f "META-INF/MANIFEST.MF" ]; then
         canonicalizeJarManifest "META-INF/MANIFEST.MF"
     fi
