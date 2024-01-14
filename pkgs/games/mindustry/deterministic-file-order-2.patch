@@ -1,0 +1,22 @@
+diff --git a/extensions/packer/src/arc/packer/FileProcessor.java b/extensions/packer/src/arc/packer/FileProcessor.java
+index a081c919..c1a87351 100644
+--- a/Arc/extensions/packer/src/arc/packer/FileProcessor.java
++++ b/Arc/extensions/packer/src/arc/packer/FileProcessor.java
+@@ -98,7 +98,7 @@ public class FileProcessor{
+         if(inputFileOrDir.isFile())
+             return process(new File[]{inputFileOrDir}, outputRoot);
+         else
+-            return process(inputFileOrDir.listFiles(), outputRoot);
++            return process(Arrays.stream(inputFileOrDir.listFiles()).sorted().toArray(File[]::new), outputRoot);
+     }
+ 
+     /**
+@@ -199,7 +199,7 @@ public class FileProcessor{
+             }
+             if(recursive && file.isDirectory()){
+                 File subdir = outputDir.getPath().length() == 0 ? new File(file.getName()) : new File(outputDir, file.getName());
+-                process(file.listFiles(inputFilter), outputRoot, subdir, dirToEntries, depth + 1);
++                process(Arrays.stream(file.listFiles(inputFilter)).sorted().toArray(File[]::new), outputRoot, subdir, dirToEntries, depth + 1);
+             }
+         }
+     }

@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl
+{ lib, stdenv, fetchurl, fetchpatch
 , makeWrapper
 , makeDesktopItem
 , copyDesktopItems
@@ -81,6 +81,15 @@ let
 
   patches = [
     ./0001-fix-include-path-for-SDL2-on-linux.patch
+    ./remove-properties-timestamp.patch
+    (fetchpatch {
+      name = "deterministic-file-order.patch";
+      url = "https://github.com/Anuken/Mindustry/commit/cde4fa2c2961da594ca9cce3e036c427ac800648.patch";
+      stripLen = 1;
+      extraPrefix = "Mindustry/";
+      hash = "sha256-V6rI1B1Iog+07+3LwlCgbiLsTaFpTfz+EDaOx/4+Dps=";
+    })
+    ./deterministic-file-order-2.patch
   ];
 
   unpackPhase = ''
@@ -161,7 +170,8 @@ stdenv.mkDerivation rec {
 
   desktopItems = lib.optional enableClient desktopItem;
 
-  buildPhase = with lib; ''
+  buildPhase = ''
+
     export GRADLE_USER_HOME=$(mktemp -d)
 
     # point to offline repo
@@ -173,11 +183,11 @@ stdenv.mkDerivation rec {
     sed -ie "/curl.*sdlmingw/{;s#curl -o #cp ${SDLmingwSource} #;s# -L http.*\.tar.gz##;}" Arc/backends/backend-sdl/build.gradle
 
     pushd Mindustry
-  '' + optionalString enableClient ''
+  '' + lib.optionalString enableClient ''
 
     pushd ../Arc
-    gradle --offline --no-daemon jnigenBuild -Pbuildversion=${buildVersion}
-    gradle --offline --no-daemon jnigenJarNativesDesktop -Pbuildversion=${buildVersion}
+    gradle --offline --no-daemon --debug --console=plain jnigenBuild -Pbuildversion=${buildVersion}
+    gradle --offline --no-daemon --debug --console=plain jnigenJarNativesDesktop -Pbuildversion=${buildVersion}
     glewlib=${lib.getLib selectedGlew}/lib/libGLEW.so
     sdllib=${lib.getLib SDL2}/lib/libSDL2.so
     patchelf backends/backend-sdl/libs/linux64/libsdl-arc*.so \
@@ -188,19 +198,19 @@ stdenv.mkDerivation rec {
     cp extensions/freetype/libs/*/* natives/natives-freetype-desktop/libs/
     popd
 
-    gradle --offline --no-daemon desktop:dist -Pbuildversion=${buildVersion}
-  '' + optionalString enableServer ''
-    gradle --offline --no-daemon server:dist -Pbuildversion=${buildVersion}
+    gradle --offline --no-daemon --debug --console=plain desktop:dist -Pbuildversion=${buildVersion}
+  '' + lib.optionalString enableServer ''
+    gradle --offline --no-daemon --debug --console=plain server:dist -Pbuildversion=${buildVersion}
   '';
 
-  installPhase = with lib; let
+  installPhase = let
     installClient = ''
       install -Dm644 desktop/build/libs/Mindustry.jar $out/share/mindustry.jar
       mkdir -p $out/bin
       makeWrapper ${jdk}/bin/java $out/bin/mindustry \
         --add-flags "-jar $out/share/mindustry.jar" \
         --suffix LD_LIBRARY_PATH : ${lib.makeLibraryPath [libpulseaudio alsa-lib libjack2]} \
-        --set ALSA_PLUGIN_DIR ${alsa-plugins}/lib/alsa-lib/'' + optionalString enableWayland '' \
+        --set ALSA_PLUGIN_DIR ${alsa-plugins}/lib/alsa-lib/'' + lib.optionalString enableWayland '' \
         --set SDL_VIDEODRIVER wayland \
         --set SDL_VIDEO_WAYLAND_WMCLASS Mindustry
       '' + ''
@@ -225,8 +235,8 @@ stdenv.mkDerivation rec {
     '';
   in ''
     runHook preInstall
-  '' + optionalString enableClient installClient
-     + optionalString enableServer installServer
+  '' + lib.optionalString enableClient installClient
+     + lib.optionalString enableServer installServer
      + ''
     runHook postInstall
   '';
