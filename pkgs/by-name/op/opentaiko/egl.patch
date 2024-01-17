@@ -1,0 +1,28 @@
+diff --git a/FDK/src/01.Framework/Rendering/Angle/Egl.cs b/FDK/src/01.Framework/Rendering/Angle/Egl.cs
+index c86ecb5..bb9d110 100644
+--- a/FDK/src/01.Framework/Rendering/Angle/Egl.cs
++++ b/FDK/src/01.Framework/Rendering/Angle/Egl.cs
+@@ -397,13 +397,13 @@ namespace OpenTK.Graphics.Egl
+         public static extern IntPtr GetProcAddress(IntPtr funcname);
+ 
+         // EGL_EXT_platform_base
+-        [DllImport("libEGL", EntryPoint = "eglGetPlatformDisplayEXT")]
++        [DllImport("libEGL", EntryPoint = "eglGetPlatformDisplay")]
+         public static extern EGLDisplay GetPlatformDisplayEXT(int platform, EGLNativeDisplayType native_display, int[] attrib_list);
+ 
+-        [DllImport("libEGL", EntryPoint = "eglCreatePlatformWindowSurfaceEXT")]
++        [DllImport("libEGL", EntryPoint = "eglCreatePlatformWindowSurface")]
+         public static extern EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType native_window, int[] attrib_list);
+ 
+-        [DllImport("libEGL", EntryPoint = "eglCreatePlatformPixmapSurfaceEXT")]
++        [DllImport("libEGL", EntryPoint = "eglCreatePlatformPixmapSurface")]
+         public static extern EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType native_pixmap, int[] attrib_list);
+ 
+         // Returns true if Egl drivers exist on the system.
+@@ -417,4 +417,4 @@ namespace OpenTK.Graphics.Egl
+             }
+         }
+     }
+-}
+\ No newline at end of file
++}

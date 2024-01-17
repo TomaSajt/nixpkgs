@@ -1,0 +1,51 @@
+diff --git a/OpenTaiko/src/Common/Program.cs b/OpenTaiko/src/Common/Program.cs
+index 391671b..ccae037 100644
+--- a/OpenTaiko/src/Common/Program.cs
++++ b/OpenTaiko/src/Common/Program.cs
+@@ -83,45 +83,7 @@ namespace TJAPlayer3
+ 					try
+ #endif
+ 					{
+-						
+-						string osplatform = "";
+-						if (OperatingSystem.IsWindows())
+-							osplatform = "win";
+-						else if (OperatingSystem.IsMacOS())
+-							osplatform = "osx";
+-						else if (OperatingSystem.IsLinux())
+-							osplatform = "linux";
+-						else
+-							throw new PlatformNotSupportedException("TJAPlayer3-f does not support this OS.");
+-
+-						string platform = "";
+-
+-						switch (RuntimeInformation.ProcessArchitecture)
+-						{
+-							case Architecture.X64:
+-								platform = "x64";
+-								break;
+-							case Architecture.X86:
+-								platform = "x86";
+-								break;
+-							case Architecture.Arm:
+-								platform = "arm";
+-								break;
+-							case Architecture.Arm64:
+-								platform = "arm64";
+-								break;
+-							default:
+-								throw new PlatformNotSupportedException($"TJAPlayer3 does not support this Architecture. ({RuntimeInformation.ProcessArchitecture})");
+-						}
+-
+-                		FFmpeg.AutoGen.ffmpeg.RootPath = AppContext.BaseDirectory + @"FFmpeg/" + osplatform + "-" + platform + "/";
+-						DirectoryInfo info = new DirectoryInfo(AppContext.BaseDirectory + @"Libs/" + osplatform + "-" + platform + "/");
+-
+-						//実行ファイルの階層にライブラリをコピー
+-						foreach (FileInfo fileinfo in info.GetFiles())
+-						{
+-							fileinfo.CopyTo(AppContext.BaseDirectory + fileinfo.Name, true);
+-						}
++						FFmpeg.AutoGen.ffmpeg.RootPath = AppContext.BaseDirectory + @"FFmpeg/";
+ 
+ 						using ( var mania = new TJAPlayer3() )
+ 							mania.Run();
