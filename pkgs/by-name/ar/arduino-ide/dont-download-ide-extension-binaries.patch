@@ -1,0 +1,40 @@
+diff --git a/arduino-ide-extension/package.json b/arduino-ide-extension/package.json
+index 9c4dd44c..5a27e820 100644
+--- a/arduino-ide-extension/package.json
++++ b/arduino-ide-extension/package.json
+@@ -4,7 +4,7 @@
+   "description": "An extension for Theia building the Arduino IDE",
+   "license": "AGPL-3.0-or-later",
+   "scripts": {
+-    "prepare": "yarn download-cli && yarn download-fwuploader && yarn download-ls && yarn copy-i18n && yarn download-examples",
++    "prepare": "yarn download-examples && yarn copy-i18n",
+     "clean": "rimraf lib",
+     "compose-changelog": "node ./scripts/compose-changelog.js",
+     "download-cli": "node ./scripts/download-cli.js",
+diff --git a/arduino-ide-extension/scripts/download-examples.js b/arduino-ide-extension/scripts/download-examples.js
+index 029517d4..e185dacf 100644
+--- a/arduino-ide-extension/scripts/download-examples.js
++++ b/arduino-ide-extension/scripts/download-examples.js
+@@ -30,21 +30,7 @@ const version = '1.10.0';
+     return;
+   }
+ 
+-  const repository = await fs.mkdtemp(
+-    path.join(os.tmpdir(), 'arduino-examples-')
+-  );
+-
+-  exec(
+-    'git',
+-    ['clone', 'https://github.com/arduino/arduino-examples.git', repository],
+-    { logStdout: true }
+-  );
+-
+-  exec(
+-    'git',
+-    ['-C', repository, 'checkout', `tags/${version}`, '-b', version],
+-    { logStdout: true }
+-  );
++  const repository = '@examples_src@';
+ 
+   mkdirSync(destination, { recursive: true });
+   const examplesPath = path.join(repository, 'examples');
