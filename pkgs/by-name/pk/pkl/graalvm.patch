@@ -1,0 +1,34 @@
+diff --git a/pkl-cli/pkl-cli.gradle.kts b/pkl-cli/pkl-cli.gradle.kts
+index 75f9832..76e7f80 100644
+--- a/pkl-cli/pkl-cli.gradle.kts
++++ b/pkl-cli/pkl-cli.gradle.kts
+@@ -134,18 +134,17 @@ tasks.check {
+ 
+ fun Exec.configureExecutable(isEnabled: Boolean, outputFile: File, extraArgs: List<String> = listOf()) {
+   enabled = isEnabled
+-  dependsOn(":installGraalVm")
+ 
+   inputs.files(sourceSets.main.map { it.output })
+   inputs.files(configurations.runtimeClasspath)
+   outputs.file(outputFile)
+ 
+   workingDir = outputFile.parentFile
+-  executable = "${buildInfo.graalVm.baseDir}/bin/native-image"
++  executable = "native-image"
+ 
+   // JARs to exclude from the class path for the native-image build.
+   val exclusions =
+-    if (buildInfo.graalVm.isGraal22) emptyList()
++    if (false) emptyList()
+     else listOf(libs.truffleApi, libs.graalSdk).map { it.get().module.name }
+   // https://www.graalvm.org/22.0/reference-manual/native-image/Options/
+   argumentProviders.add(CommandLineArgumentProvider {
+@@ -159,7 +158,7 @@ fun Exec.configureExecutable(isEnabled: Boolean, outputFile: File, extraArgs: Li
+         ,"-H:IncludeResources=org/pkl/commons/cli/commands/IncludedCARoots.pem"
+         //,"-H:IncludeResources=org/pkl/core/Release.properties"
+         ,"-H:IncludeResourceBundles=org.pkl.core.errorMessages"
+-        ,"--macro:truffle"
++        //,"--macro:truffle"
+         ,"-H:Class=org.pkl.cli.Main"
+         ,"-H:Name=${outputFile.name}"
+         //,"--native-image-info"

@@ -1,0 +1,20 @@
+diff --git a/buildSrc/src/main/kotlin/BuildInfo.kt b/buildSrc/src/main/kotlin/BuildInfo.kt
+index e8d85da..cb50e89 100644
+--- a/buildSrc/src/main/kotlin/BuildInfo.kt
++++ b/buildSrc/src/main/kotlin/BuildInfo.kt
+@@ -101,14 +101,7 @@ open class BuildInfo(project: Project) {
+ 
+   // could be `commitId: Provider<String> = project.provider { ... }`
+   val commitId: String by lazy {
+-    // only run command once per build invocation
+-    if (project === project.rootProject) {
+-      Runtime.getRuntime()
+-        .exec("git rev-parse --short HEAD", arrayOf(), project.rootDir)
+-        .inputStream.reader().readText().trim()
+-    } else {
+-      project.rootProject.extensions.getByType(BuildInfo::class.java).commitId
+-    }
++    "nixpkgs"
+   }
+ 
+   val commitish: String by lazy {
