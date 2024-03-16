@@ -15,6 +15,8 @@
 , runtimeDeps
 , buildType
 , runtimeId
+, projectFilesEscaped
+, testProjectFilesEscaped
 }:
 assert (builtins.isString runtimeId);
 
@@ -36,7 +38,7 @@ in
           zlib
           openssl
         ];
-        inherit runtimeId;
+        inherit runtimeId projectFilesEscaped testProjectFilesEscaped;
       };
     } ./dotnet-configure-hook.sh) { };
 
@@ -45,7 +47,7 @@ in
       name = "dotnet-build-hook";
       propagatedBuildInputs = [ dotnet-sdk ];
       substitutions = {
-        inherit buildType runtimeId;
+        inherit buildType runtimeId projectFilesEscaped testProjectFilesEscaped;
       };
     } ./dotnet-build-hook.sh) { };
 
@@ -54,7 +56,7 @@ in
       name = "dotnet-check-hook";
       propagatedBuildInputs = [ dotnet-test-sdk ];
       substitutions = {
-        inherit buildType runtimeId libraryPath;
+        inherit buildType runtimeId libraryPath projectFilesEscaped testProjectFilesEscaped;
         disabledTests = lib.optionalString (disabledTests != [])
           (let
             escapedNames = lib.lists.map (n: lib.replaceStrings [","] ["%2C"] n) disabledTests;
@@ -69,7 +71,7 @@ in
       name = "dotnet-install-hook";
       propagatedBuildInputs = [ dotnet-sdk ];
       substitutions = {
-        inherit buildType runtimeId;
+        inherit buildType runtimeId projectFilesEscaped;
       };
     } ./dotnet-install-hook.sh) { };
 

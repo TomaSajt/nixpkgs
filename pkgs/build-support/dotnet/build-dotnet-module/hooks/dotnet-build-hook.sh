@@ -41,7 +41,9 @@ dotnetBuildHook() {
             runtimeIdFlags+=("--runtime @runtimeId@")
         fi
 
-        env dotnet build ${project-} \
+        echo "DEBUG: $project"
+
+        env dotnet build "${project-}" \
             -maxcpucount:$maxCpuFlag \
             -p:BuildInParallel=$parallelBuildFlag \
             -p:ContinuousIntegrationBuild=true \
@@ -54,9 +56,14 @@ dotnetBuildHook() {
             ${dotnetFlags[@]}
     }
 
-    (( "${#projectFile[@]}" == 0 )) && dotnetBuild
+    declare -a projectFiles=( @projectFilesEscaped@ )
+    declare -a testProjectFiles=( @testProjectFilesEscaped@ )
 
-    for project in ${projectFile[@]} ${testProjectFile[@]-}; do
+    (( "${#projectFiles[@]}" == 0 )) && dotnetBuild
+
+    IFS=""
+    for project in ${projectFiles[@]} ${testProjectFiles[@]-}; do
+        echo "$project"
         dotnetBuild "$project"
     done
 

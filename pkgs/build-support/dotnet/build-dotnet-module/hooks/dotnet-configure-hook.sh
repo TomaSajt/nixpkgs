@@ -1,5 +1,3 @@
-declare -a projectFile testProjectFile
-
 # Inherit arguments from derivation
 dotnetFlags=( ${dotnetFlags[@]-} )
 dotnetRestoreFlags=( ${dotnetRestoreFlags[@]-} )
@@ -15,7 +13,7 @@ dotnetConfigureHook() {
 
     dotnetRestore() {
         local -r project="${1-}"
-        env dotnet restore ${project-} \
+        env dotnet restore "${project-}" \
             -p:ContinuousIntegrationBuild=true \
             -p:Deterministic=true \
             --runtime "@runtimeId@" \
@@ -45,9 +43,13 @@ EOF
 
     env dotnet tool restore --add-source "@nugetSource@/lib"
 
-    (( "${#projectFile[@]}" == 0 )) && dotnetRestore
+    declare -a projectFiles=( @projectFilesEscaped@ )
+    declare -a testProjectFiles=( @testProjectFilesEscaped@ )
 
-    for project in ${projectFile[@]} ${testProjectFile[@]-}; do
+    (( "${#projectFiles[@]}" == 0 )) && dotnetRestore
+
+    IFS=""
+    for project in ${projectFiles[@]} ${testProjectFiles[@]-}; do
         dotnetRestore "$project"
     done
 

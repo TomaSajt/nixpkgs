@@ -16,7 +16,11 @@ dotnetCheckHook() {
         local -r maxCpuFlag="1"
     fi
 
-    for project in ${testProjectFile[@]-${projectFile[@]}}; do
+    declare -a projectFiles=( @projectFilesEscaped@ )
+    declare -a testProjectFiles=( @testProjectFilesEscaped@ )
+
+    IFS=""
+    for project in ${testProjectFiles[@]-${projectFiles[@]}}; do
         runtimeIdFlags=()
         if [[ "$project" == *.csproj ]]; then
             runtimeIdFlags=("--runtime @runtimeId@")

@@ -69,7 +69,7 @@
 , disabledTests ? [ ]
   # The project file to run unit tests against. This is usually referenced in the regular project file, but sometimes it needs to be manually set.
   # It gets restored and build, but not installed. You may need to regenerate your nuget lockfile after setting this.
-, testProjectFile ? ""
+, testProjectFile ? null
 
   # The type of build to perform. This is passed to `dotnet` with the `--configuration` flag. Possible values are `Release`, `Debug`, etc.
 , buildType ? "Release"
@@ -96,7 +96,7 @@ let
     else dotnet-sdk.meta.platforms;
 
   inherit (callPackage ./hooks {
-    inherit dotnet-sdk dotnet-test-sdk disabledTests nuget-source dotnet-runtime runtimeDeps buildType;
+    inherit dotnet-sdk dotnet-test-sdk disabledTests nuget-source dotnet-runtime runtimeDeps buildType projectFilesEscaped testProjectFilesEscaped;
     runtimeId =
       if runtimeId != null
       then runtimeId
@@ -143,6 +143,9 @@ let
   };
 
   nugetDepsFile = _nugetDeps.sourceFile;
+
+  projectFilesEscaped = lib.escapeShellArgs (lib.toList projectFile);
+  testProjectFilesEscaped = lib.escapeShellArgs (lib.toList testProjectFile);
 in
 stdenvNoCC.mkDerivation (args // {
   nativeBuildInputs = args.nativeBuildInputs or [ ] ++ [
@@ -268,8 +271,8 @@ stdenvNoCC.mkDerivation (args // {
                 ${lib.optionalString (flags != []) (toString flags)}
         }
 
-        declare -a projectFiles=( ${toString (lib.toList projectFile)} )
-        declare -a testProjectFiles=( ${toString (lib.toList testProjectFile)} )
+        declare -a projectFiles=( ${projectFilesEscaped} )
+        declare -a testProjectFiles=( ${testProjectFilesEscaped} )
 
         export DOTNET_NOLOGO=1
         export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -292,6 +295,7 @@ stdenvNoCC.mkDerivation (args // {
         for rid in "${lib.concatStringsSep "\" \"" runtimeIds}"; do
             (( ''${#projectFiles[@]} == 0 )) && dotnetRestore "" "$rid"
 
+            IFS=""
             for project in ''${projectFiles[@]-} ''${testProjectFiles[@]-}; do
                 dotnetRestore "$project" "$rid"
             done
