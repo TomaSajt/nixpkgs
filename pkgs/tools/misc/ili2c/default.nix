@@ -5,7 +5,7 @@
 , jdk8
 , jre8
 , makeWrapper
-, canonicalize-jars-hook
+, stripJavaArchivesHook
 }:
 
 let
@@ -20,7 +20,7 @@ stdenv.mkDerivation (finalAttrs: {
     ant
     jdk
     makeWrapper
-    canonicalize-jars-hook
+    stripJavaArchivesHook
   ];
 
   src = fetchFromGitHub {
@@ -31,7 +31,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   patches = [
-    # avoids modifying Version.properties file because that would insert the current timestamp into the file
+    # avoid inserting the current timestamp into the properties file
     ./dont-use-build-timestamp.patch
   ];
 
