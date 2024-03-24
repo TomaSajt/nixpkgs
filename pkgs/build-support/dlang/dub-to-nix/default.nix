@@ -49,7 +49,7 @@ writeShellScriptBin "dub-to-nix" ''
   for dep in $deps; do
       IFS=" " read -r pname version <<< "$dep"
       url="https://code.dlang.org/packages/$pname/$version.zip"
-      if sha256=$(nix-prefetch-url --unpack --type sha256 "$url" 2> $tmp/error ); then
+      if sha256=$(nix-prefetch-url --type sha256 "$url" 2> $tmp/error ); then
       echo "  (makeDubDep {"
       echo "    pname = \"$pname\";"
       echo "    version = \"$version\";"

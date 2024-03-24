@@ -1,11 +1,11 @@
-{ fetchzip }:
+{ fetchurl }:
 
 { pname, version, ... }@attrs:
 {
   inherit pname version;
-  src = fetchzip (
+  src = fetchurl (
     {
-      name = "dub-${pname}-${version}";
+      name = "dub-${pname}-${version}.zip";
       url = "mirror://dub/${pname}/${version}.zip";
     }
     // builtins.removeAttrs attrs [

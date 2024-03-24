@@ -3,181 +3,181 @@
   (makeDubDep {
     pname = "bcaa";
     version = "0.0.8";
-    sha256 = "05h00pbwa6pz2mgb1jvbc9qz31ghg1dypzn4p7850frl4lw1z32w";
+    sha256 = "1v8qy98hjdgfsdx6zg9n09sfpfqsh57nbsn8phw82rssi0gysgsr";
   })
   (makeDubDep {
     pname = "bindbc-loader";
     version = "1.0.3";
-    sha256 = "0l92563qvy05f7dmlhbjh30k1jghkp6jiwvfwrcapx7gb7n5q37d";
+    sha256 = "0d688cwb2hjhfxc7l00cfh22prybsndk6j1hvlrf9nlzb46i4i1j";
   })
   (makeDubDep {
     pname = "bindbc-sdl";
     version = "1.1.3";
-    sha256 = "1i0zx2wrc6jf7rs7gymg6brzc3vryy0d3pf1b8rr37aa8dhmf05q";
+    sha256 = "0yi472nv7pg1q1kk749w3mv1l2l6ch20k8kcc4l9jy3m2vwlpd88";
   })
   (makeDubDep {
     pname = "dcv";
     version = "0.3.0";
-    sha256 = "18ki72w1jiq8gbq4pxgnmfavrrxfvxa0g4a88nr047bdgdv1fw1y";
+    sha256 = "02fd7wig6i618r7l7alw0hfljbwjvq13fkyhwcpsdd7r5x2f7hyk";
   })
   (makeDubDep {
     pname = "ddbus";
     version = "3.0.0-beta.2";
-    sha256 = "1p15ma2mf97j68yxhkdw1i3g2451fakwlg22hkja9a4dzk2vrbga";
+    sha256 = "01dgvlvwbhwz7822gp6z5xn6w3k51q09i6qzns2i4ixmjh45wscs";
   })
   (makeDubDep {
     pname = "diet-ng";
     version = "1.8.1";
-    sha256 = "11hrbvsxhipvcz9m1qlq92iaw0h35pzdy5rf7z8c4vx3hwjrnhni";
+    sha256 = "0kh8haw712xkd3f07s5x5g12nmmkv0y1lk2cqh66298fc5mgj4sv";
   })
   (makeDubDep {
     pname = "dportals";
     version = "0.1.0";
-    sha256 = "09zgv7ygar8l9zydr1sim1vvlcyrjwi6fany7dxf47569pnaaiz1";
+    sha256 = "11wxlp2y7s2mc98bxya7fmg0gc4yqlyg0bjsd1yxzr8fmsvf2zzh";
   })
   (makeDubDep {
     pname = "dunit";
     version = "1.0.16";
-    sha256 = "0di54kq7bl9rkdxk0xm10knnyp475qx2q6k6csd69bzdl4db2czy";
+    sha256 = "0p9g4h5qanbg6281x1068mdl5p7zvqig4zmmi72a2cay6dxnbvxb";
   })
   (makeDubDep {
     pname = "dxml";
     version = "0.4.4";
-    sha256 = "18pb20snyncn5m54f2gnwgrw9zddp2rmas0vrhvmj690xvqqg4lv";
+    sha256 = "0p5vmkw29ksh5wdxz1ijms1wblq288pv15vnbl93z7q2vgnq995w";
   })
   (makeDubDep {
     pname = "eventcore";
-    version = "0.9.28";
-    sha256 = "0imagg80y4zi3jskr3d9z1l39rbpq91qs3s5yphb3mgnprf9fw8a";
+    version = "0.9.29";
+    sha256 = "1993mibxqb4v7lbsq3kbfwxfpi0d1gzzmzvx6y01907aqz933isa";
   })
   (makeDubDep {
     pname = "facetrack-d";
     version = "0.7.8";
-    sha256 = "1gyq734dwq8dqd2q9aqlrk719fqs0clfjhinph1wskjvavqrx49m";
+    sha256 = "1414wvh0kn1rps5r16ir92sqfj8a7na1gd71ds81jkq8arkm17j0";
   })
   (makeDubDep {
     pname = "fghj";
     version = "1.0.2";
-    sha256 = "00kki3qmd2hq1jygfbx8ypxkjclg4jbv11kpmb2hlfb3ls66rgki";
+    sha256 = "0c102pfbcb3kpr8hpq3qzlxfw460v202vg6hrfdzw5a8pygy4cxj";
   })
   (makeDubDep {
     pname = "i18n-d";
     version = "1.0.2";
-    sha256 = "1zqa5lrx07iz5pxx5aviq4m52ajzx9sqayb74b3hw2ymfxswk30n";
+    sha256 = "1p33w5wh09ha132fsk0b37rjgzw6z3l0v64dixmkvnhhm1xy3b1g";
   })
   (makeDubDep {
     pname = "i2d-imgui";
     version = "0.8.0";
-    sha256 = "0jha8n13lkh4r8fi4x6fmd5wx5p613kqik246lk0g05g3ixk3x60";
+    sha256 = "1xikjz5b9r4gml0j7z5k8x1n8h9qcixzsg8gpjlzr3dwis7m0cfw";
   })
   (makeDubDep {
     pname = "i2d-opengl";
     version = "1.0.0";
-    sha256 = "112rpazb8ksg6h59wgkjzmfnq7y6krk1c08f88qb2ij1rh6mz34z";
+    sha256 = "0137ifda4z6h7sa7ls9n3rpcd6344qsfpbcc0dl7wzyk0xa73912";
   })
   (makeDubDep {
     pname = "imagefmt";
     version = "2.1.2";
-    sha256 = "0fymr2mbccwf6r598awa3a54hjya5m4sddfplj38vkl3ndhmd738";
+    sha256 = "0dl7n4myxp1s3b32v2s975k76gs90wr2nw6ac5jq9hsgzhp1ix0h";
   })
   (makeDubDep {
     pname = "inmath";
     version = "1.0.6";
-    sha256 = "104a77anrpb22abfcj44yr1rsbrksbbl5naadbl89gpdw8l9lihd";
+    sha256 = "0kzk55ilbnl6qypjk60zwd5ibys5n47128hbbr0mbc7bpj9ppfg4";
   })
   (makeDubDep {
     pname = "inochi2d";
     version = "0.8.3";
-    sha256 = "19v3v6q4ynk7dmrqrwkmppcv35sbp3klhq9dhc9l2z3kqkb4476b";
+    sha256 = "1m9dalm6sb518yi9mbphq1fdax90fc5rmskah19l7slnplbhli4l";
   })
   (makeDubDep {
     pname = "kra-d";
     version = "0.5.5";
-    sha256 = "0w091dgb68814ml8hg7qx1bm0yblj1k7ww26gw0wpxcdj9pnhg6j";
+    sha256 = "0dffmf084ykz19y084v936r3f74613d0jifj0wb3xibfcq9mwxqz";
   })
   (makeDubDep {
     pname = "libasync";
     version = "0.8.6";
-    sha256 = "1pbvlfxbp3p0ld0552dzdl4ng5939f84drjbcj8a7g199p1ih045";
+    sha256 = "0hhk5asfdccby8ky77a25qn7dfmfdmwyzkrg3zk064bicmgdwlnj";
   })
   (makeDubDep {
     pname = "memutils";
     version = "1.0.10";
-    sha256 = "0vscncyf6i0skd4c0srzfc4xxx987336f89zdjhq6750jd00njqg";
+    sha256 = "0hm31birbw59sw1bi9syjhbcdgwwwyyx6r9jg7ar9i6a74cjr52c";
   })
   (makeDubDep {
     pname = "mir-algorithm";
     version = "3.22.0";
-    sha256 = "1hks17qb860s96wi0h9s241z6xk51jv8i0acn6mv8c1qj0z66vlg";
+    sha256 = "0pl1vwyyhr2hrxlj060khzhg33dkgyrzi3f5qqxz6xj3hcp7axxq";
   })
   (makeDubDep {
     pname = "mir-core";
     version = "1.7.0";
-    sha256 = "08dqlirl4md8shhy4lkvbx1gcrgww0cyi860k98707pz0zcqcfrp";
+    sha256 = "14k7y2r06pwzf29shymyjrk7l582bh181rc07bnwgjn3f84ayn62";
   })
   (makeDubDep {
     pname = "mir-linux-kernel";
     version = "1.0.1";
-    sha256 = "1gcaavsni47352nvw9s41zkaswd582cafq3931i0zinhd9s3clag";
+    sha256 = "0adyjpcgd65z44iydnrrrpjwbvmrm08a3pkcriqi7npqylfysqn6";
   })
   (makeDubDep {
     pname = "mir-random";
     version = "2.2.19";
-    sha256 = "0d7dalwy4n91s4knra18b5n70q63ld74vmll7x9h9hxhaipy4xi0";
+    sha256 = "0ad9ahvyrv5h38aqwn3zvlrva3ikfq28dfhpg2lwwgm31ymzvqpb";
   })
   (makeDubDep {
     pname = "openssl";
     version = "3.3.3";
-    sha256 = "1634j4psp3qwgwhk2sa3jj6gvwv3i96hpg2wrdy9ihjhabnszn0f";
+    sha256 = "1fwhd5fkvgbqf3y8gwmrnd42kzi4k3mibpxijw5j82jxgfp1rzsf";
   })
   (makeDubDep {
     pname = "openssl-static";
-    version = "1.0.2+3.0.8";
-    sha256 = "00wllmfrjpq5ln3zs9qcqf4kq2i6bqbjxwj0jnxwwz125kfm55sy";
+    version = "1.0.3+3.0.8";
+    sha256 = "1z977ghlnczxky2q2gislfi68jnbp2zf4pifv8rzrcs0nx3va2jr";
   })
   (makeDubDep {
     pname = "psd-d";
     version = "0.6.3";
-    sha256 = "19d5j5dj60x7gldh1r80xxcd58p269f5318n0h3n0kj92gv8nl3m";
+    sha256 = "0qbwkvzgrvd6m67p14ari4iiajmhfi2x1id4da971qxiprfm1993";
   })
   (makeDubDep {
     pname = "silly";
     version = "1.1.1";
-    sha256 = "0ywz5mnjzicgasffhikh51q1nydrvqz3kc34hakj98kiv7x1q256";
+    sha256 = "1l0mpnbz8h3ihjxvk5qwn6p6lwb75g259k7fjqasw0zp0c27bkjb";
   })
   (makeDubDep {
     pname = "stdx-allocator";
     version = "2.77.5";
-    sha256 = "03av8zp5p6vf6fg005xbmwnjfw96jyrr4dcj4m56c4a3vx7v72pk";
+    sha256 = "1g8382wr49sjyar0jay8j7y2if7h1i87dhapkgxphnizp24d7kaj";
   })
   (makeDubDep {
     pname = "taggedalgebraic";
     version = "0.11.22";
-    sha256 = "02iy90nwy0zzy25hwdqbcgd0w0lwzramcvi3pgyljhq0w0vl5hkq";
+    sha256 = "1kc39sdnk2ybhrwxiwyw1mqcw0qzjr0vr54yvyp3gkkaad373k4r";
   })
   (makeDubDep {
     pname = "tinyfiledialogs";
     version = "0.10.1";
-    sha256 = "1qi8xbkk4kak0y4rf31p0wbyi0i6giggx25ckyxgp65dshhfhgkn";
+    sha256 = "1k3gq9y7912x5b30h60nvlfdr61as1f187b8rsilkxliizcmbhfi";
   })
   (makeDubDep {
     pname = "vibe-container";
     version = "1.3.0";
-    sha256 = "1ziy0z53rjzmv0dpzzc1dvjr562wyv2g18cvmminasn2vkgi59gr";
+    sha256 = "02gdw7ma93fdvgx3fngmfjd074jh2rzm9qsxakr3zn81p6qnzair";
   })
   (makeDubDep {
     pname = "vibe-core";
     version = "2.8.2";
-    sha256 = "0c0rg3xc0qghf64b5c6kjl7wgbjzpaqdhr19cvm2znnjxn77921a";
+    sha256 = "1g9l8hmjx4dzzwh7pqasc9s16zzbdfvciswbv0gnrvmjsb0pi9xr";
   })
   (makeDubDep {
     pname = "vibe-d";
     version = "0.9.8";
-    sha256 = "0fcb3gfdbb17caprrmyzak17prkps7ii8s3gr97yib3qmgxzz1pd";
+    sha256 = "1gficgfzwswaxj9qlnca28c65gl7xq6q8y47qlf4m1gvkxj4ij2k";
   })
   (makeDubDep {
     pname = "vmc-d";
     version = "1.1.3";
-    sha256 = "11yx2fbp9p0i766xg95hcfyvzg5xa9znqnmrnmws0g07wkl6cncx";
+    sha256 = "0kkqihhzxdq0n46jk55g4yhhwrnw6b9d931yb5pblxcc342gckvm";
   })
 ]

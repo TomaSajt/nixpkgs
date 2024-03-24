@@ -64,33 +64,35 @@ buildDubPackage (
       (makeDubDep {
         pname = "gitver";
         version = "1.6.1";
-        hash = "sha256-KGLr/dRl/MOTMWCdPdtDqHX3eSiICNb/XMEmMEdbC3w=";
+        hash = "sha256-NCyFik4FbD7yMLd5zwf/w4cHwhzLhIRSVw1bWo/CZB4=";
       })
       (makeDubDep {
         pname = "semver";
         version = "0.3.2";
-        hash = "sha256-d+KkxfBb6Pf1R1FwJJH5RKpXhX6TlhmpKzmRXKzNrbc=";
+        hash = "sha256-l6c9hniUd5xNsJepq8x30e0JTjmXs4pYUmv4ws+Nrn4=";
       })
     ];
 
-    postPatch = ''
+    postConfigure = ''
+      cimgui_dir=("$DUB_HOME"/packages/i2d-imgui/*/i2d-imgui)
+
       # `i2d-imgui` isn't able to find SDL2 by default due to it being written in lower case
       # this is only an issue when compiling statically
-      substituteInPlace $DUB_DEPS/i2d-imgui/dub.sdl \
-          --replace-fail 'libs "sdl2"' 'libs "SDL2"'
+      substituteInPlace "$cimgui_dir/dub.json" \
+          --replace-fail '"sdl2"' '"SDL2"'
 
       # The `i2d-cimgui` dub dependency fetched inside the auto-generated `*-deps.nix` file
       # which doesn't know that it's actually a git repo, so it doesn't fetch its submodules.
       # Upstream uses a cmake script to fetch the `cimgui` submodule anyway, which we can't do
       # We get around this by manually pre-fetching the submodule and copying it into the right place
-      cp -r --no-preserve=all ${cimgui-src}/* $DUB_DEPS/i2d-imgui/deps/cimgui
+      cp -r --no-preserve=all ${cimgui-src}/* "$cimgui_dir/deps/cimgui"
 
       # disable the original cmake fetcher script
-      substituteInPlace $DUB_DEPS/i2d-imgui/deps/CMakeLists.txt \
+      substituteInPlace "$cimgui_dir/deps/CMakeLists.txt" \
           --replace-fail "PullSubmodules(" "# PullSubmodules(" \
           --replace-fail  "\''${cimgui_SUBMOD_DIR}" "cimgui"
 
-      ${args.postPatch or ""}
+      ${args.postConfigure or ""}
     '';
 
     preBuild = ''
