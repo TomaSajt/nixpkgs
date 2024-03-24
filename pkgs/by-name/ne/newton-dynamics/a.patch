@@ -1,0 +1,33 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0e3825a..d4e67ba 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -167,7 +167,7 @@ if (MSVC)
+ 		set(CMAKE_CXX_FLAGS_RELEASE "/MD")
+ 	endif()
+ 
+-	message("Compiler Id: ${CMAKE_CXX_COMPILER_ID}") 
++	message("Compiler Id: ${CMAKE_CXX_COMPILER_ID}")
+ 
+ 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi /Od /fp:fast")
+ 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /Zi /O2 /fp:fast")
+@@ -179,7 +179,7 @@ if (MSVC)
+ 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /arch:AVX2")
+ 		set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /arch:AVX2")
+ 	endif()
+-	
++
+ 	message("CMAKE_WARNINGS is ${CMAKE_WARNINGS}")
+ 	message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
+ 	message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
+@@ -211,10 +211,3 @@ add_subdirectory(sdk)
+ add_subdirectory(thirdParty)
+ add_subdirectory(applications)
+ 
+-if (NOT NEWTON_EXCLUDE_UNIX_TEST AND (PTR_SIZE EQUAL 8))
+-	message("building unit tests")
+-	file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/_deps)
+-	add_subdirectory(tests)
+-endif()
+-
+-
