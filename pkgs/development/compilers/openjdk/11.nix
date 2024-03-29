@@ -1,7 +1,7 @@
 { stdenv, lib, fetchpatch, fetchFromGitHub, bash, pkg-config, autoconf, cpio, file, which, unzip
 , zip, perl, cups, freetype, harfbuzz, alsa-lib, libjpeg, giflib, libpng, zlib, lcms2
 , libX11, libICE, libXrender, libXext, libXt, libXtst, libXi, libXinerama
-, libXcursor, libXrandr, fontconfig, openjdk11-bootstrap
+, libXcursor, libXrandr, fontconfig, openjdk11-bootstrap, strip-nondeterminism
 , setJavaClassPath
 , headless ? false
 , enableJavaFX ? false, openjfx
@@ -28,7 +28,7 @@ let
       sha256 = "sha256-mp8toB1dWcwOtMqNFd7UwRg8pLJckovqD/LD5p9zUoA=";
     };
 
-    nativeBuildInputs = [ pkg-config autoconf unzip ];
+    nativeBuildInputs = [ pkg-config autoconf unzip strip-nondeterminism ];
     buildInputs = [
       cpio file which zip perl zlib cups freetype harfbuzz alsa-lib libjpeg giflib
       libpng zlib lcms2 libX11 libICE libXrender libXext libXtst libXt libXtst
@@ -55,9 +55,16 @@ let
       ./swing-use-gtk-jdk10.patch
     ];
 
+    # Use SOURCE_DATE_EPOCH as the build timestamp for the internal vm build info
+    postPatch = ''
+      substituteInPlace src/hotspot/share/runtime/abstract_vm_version.cpp \
+          --replace-fail "__DATE__" "\"$(date -ud "@$SOURCE_DATE_EPOCH" +'%b %d %Y')\"" \
+          --replace-fail "__TIME__" "\"$(date -ud "@$SOURCE_DATE_EPOCH" +'%T')\""
+    '';
+
     preConfigure = ''
       chmod +x configure
-      substituteInPlace configure --replace /bin/bash "${bash}/bin/bash"
+      patchShebangs configure
     '';
 
     configureFlags = [
@@ -126,6 +133,8 @@ let
     '';
 
     preFixup = ''
+      find $out -name "*.jmod" -exec strip-nondeterminism --type=jmod {} +
+
       # Propagate the setJavaClassPath setup hook so that any package
       # that depends on the JDK has $CLASSPATH set up properly.
       mkdir -p $out/nix-support
