@@ -16,7 +16,10 @@
     in
     {
       asd = with self.legacyPackages.x86_64-linux; (
-        (python311.withPackages (ps: with ps; [ firedrake pytest firedrake.pytest-mpi pytest-xdist])).env
+        runCommand "shell" { nativeBuildInputs = [
+          (python311.withPackages (ps: with ps; [ firedrake pytest firedrake.pytest-mpi pytest-xdist  firedrake.mpi ]))
+          python311Packages.firedrake.mpi
+        ];} ""
       );
       lib = lib.extend (final: prev: {
 

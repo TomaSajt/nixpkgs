@@ -2,6 +2,7 @@
   lib,
   buildPythonPackage,
   fetchFromGitHub,
+  substituteAll,
   petsc,
   mpi,
   setuptools,
@@ -33,9 +34,13 @@ buildPythonPackage rec {
     hash = "sha256-s81NTnKQCBblvimhOnck8ZI7ADdQH4jaOYkUADq6oaM=";
   };
 
-  env.PETSC_DIR = "${petsc}";
-
-  nativeBuildInputs = [ mpi ];
+  patches = [
+    (substituteAll {
+      src = ./set-pyop2-mpi.patch;
+      inherit mpi;
+    })
+    ./pyop2-inherit-petsc4py-config.patch
+  ];
 
   buildInputs = [
     mpi

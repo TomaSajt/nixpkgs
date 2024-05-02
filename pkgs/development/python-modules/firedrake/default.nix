@@ -8,7 +8,6 @@
   mpich,
   petsc,
   hdf5-mpi,
-  lapack,
   openssh,
   mpiCheckPhaseHook,
   libspatialindex,
@@ -26,7 +25,6 @@
   vtk,
   mpi4py,
   h5py-mpi,
-  blas,
 
   pytestCheckHook,
   pytest-xdist,
@@ -95,19 +93,13 @@ buildPythonPackage rec {
 
   env.NIX_LDFLAGS = "-lspatialindex";
 
-  nativeBuildInputs = [ mpi ];
-
   buildInputs = [
     (hdf5-mpi.override { inherit mpi; })
-    #lapack
-    #blas
     libspatialindex
+    libsupermesh
   ];
 
-  propagatedBuildInputs = [
-    mpi
-    libsupermesh
-  ]; # doesn't really work :/
+  nativeBuildInputs = [ mpi ];
 
   build-system = [
     setuptools
@@ -165,20 +157,21 @@ buildPythonPackage rec {
   pytestFlagsArray = [ "-vv" ];
 
   disabledTestPaths = [
+    "tests/meshes" # pass
+    #"tests/randomfunctiongen" # pass
+    #"tests/supermesh" # pass
+    #"tests/unit" # pass
+    #"tests/test_tsfc_interface.py" # pass
+    #"tests/test_0init.py" # pass
+
     "tests/demos" # fails, but that's fine
     "tests/equation_bcs" # fail: test_EquationBC_mixedpoisson_matrix
     "tests/extrusion" # mumps-related crashes (TODO: check coredump)
-    "tests/meshes" # pass
     "tests/multigrid" # not too many fails, very long (didn't wait)
     "tests/output" # pass up to 34% (didn't wait it out)
-    "tests/randomfunctiongen" # pass
     "tests/regression"
     "tests/slate" # many fails (didn't wait it out)
-    "tests/supermesh" # pass
-    "tests/unit" # pass
     "tests/vertexonly" # long, not too many fails
-    "tests/test_tsfc_interface.py" # pass
-    #"tests/test_0init.py" # pass
   ];
 
   pythonImportsCheck = [ "firedrake" ];
@@ -191,6 +184,8 @@ buildPythonPackage rec {
       libspatialindex
       pytest-mpi
       pylit
+      pyop2
+      petsc4py
       ;
   };
 }
