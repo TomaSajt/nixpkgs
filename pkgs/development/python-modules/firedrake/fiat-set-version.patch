@@ -1,0 +1,22 @@
+diff --git a/FIAT/__init__.py b/FIAT/__init__.py
+index ae68cfd..179e31b 100644
+--- a/FIAT/__init__.py
++++ b/FIAT/__init__.py
+@@ -2,8 +2,6 @@
+ evaluating arbitrary order Lagrange and many other elements.
+ Simplices in one, two, and three dimensions are supported."""
+ 
+-import pkg_resources
+-
+ # Import finite element classes
+ from FIAT.finite_element import FiniteElement, CiarletElement  # noqa: F401
+ from FIAT.argyris import Argyris
+@@ -57,7 +55,7 @@ from FIAT.quadrature_schemes import create_quadrature     # noqa: F401
+ from FIAT.reference_element import ufc_cell, ufc_simplex  # noqa: F401
+ from FIAT.hdivcurl import Hdiv, Hcurl                     # noqa: F401
+ 
+-__version__ = pkg_resources.get_distribution("fenics-fiat").version
++__version__ = "@version@"
+ 
+ # List of supported elements and mapping to element classes
+ supported_elements = {"Argyris": Argyris,

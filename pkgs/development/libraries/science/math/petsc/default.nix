@@ -1,78 +1,176 @@
-{ lib
-, stdenv
-, fetchurl
-, darwin
-, gfortran
-, python3
-, blas
-, lapack
-, mpiSupport ? true
-, mpi                   # generic mpi dependency
-, openssh               # required for openmpi tests
-, petsc-withp4est ? false
-, p4est
-, zlib                  # propagated by p4est but required by petsc
-, petsc-optimized ? false
-, petsc-scalar-type ? "real"
-, petsc-precision ? "double"
+{
+  lib,
+  stdenv,
+  callPackage,
+  fetchFromGitLab,
+  fetchurl,
+  darwin,
+  gfortran,
+  python3,
+  blas,
+  lapack,
+  petsc-optimized ? false,
+  petsc-scalar-type ? "real",
+  petsc-precision ? "double",
+  with64BitIndices ? false,
+  mpiSupport ? true,
+  mpi, # generic mpi dependency
+  openssh, # required for openmpi tests
+  withP4est ? false,
+  p4est,
+  zlib, # propagated by p4est but required by petsc
+  withHdf5 ? false,
+  hdf5-mpi,
+  withPtscotch ? false,
+  scotch,
+  withSuperlu ? false,
+  superlu,
+  withHypre ? false,
+  hypre,
+  withScalapack ? false,
+  scalapack,
+  withMumps ? false,
+  withChaco ? false,
+  buildEnv,
 }:
 
 # This version of PETSc does not support a non-MPI p4est build
-assert petsc-withp4est -> p4est.mpiSupport;
+assert withP4est -> p4est.mpiSupport;
+assert withMumps -> withScalapack;
+assert withChaco -> !with64BitIndices; # chaco is 32 bit only
+assert withSuperlu -> !with64BitIndices; # SuperLU is 32 bit only
 
-stdenv.mkDerivation rec {
+let
+  blaslapack = buildEnv {
+    name = "blaslapack-${blas.version}+${lapack.version}";
+    paths = [
+      (lib.getLib blas)
+      (lib.getDev blas)
+      (lib.getLib lapack)
+      (lib.getDev lapack)
+    ];
+  };
+
+  withLibrary =
+    name: pkg: enable:
+    let
+      combinedPkg = buildEnv {
+        name = "${pkg.name}-combined";
+        paths = [
+          (lib.getLib pkg)
+          (lib.getDev pkg)
+        ];
+      };
+    in
+    ''
+      "--with-${name}=${if enable then "1" else "0"}"
+      ${lib.optionalString enable ''
+        "--with-${name}-dir=${combinedPkg}"
+      ''}
+    '';
+
+  chaco-src = fetchurl {
+    url = "https://bitbucket.org/petsc/pkg-chaco/get/v2.2-p4.tar.gz";
+    hash = "sha256-UWAsyc5zI++On6ThPqPUNpiHtzPEtcyIDyJ/65aXHP0=";
+  };
+  mumps-src = fetchurl {
+    url = "https://graal.ens-lyon.fr/MUMPS/MUMPS_5.6.2.tar.gz";
+    hash = "sha256-E6LBr/K9Gqkv6Et7NdiPQ0NAGZY8oJ736MkIIajx1Zo=";
+  };
+  sowing = callPackage ./sowing.nix { };
+  hdf5 = (hdf5-mpi.override { inherit mpi; });
+  scotch' =
+    (scotch.override {
+      inherit mpi;
+      withIntSize64 = with64BitIndices;
+    }).overrideAttrs
+      (attrs: {
+        buildFlags = [ "ptesmumps esmumps" ];
+      });
+
+  scalapack' = scalapack.override { inherit mpi; };
+  hypre' = hypre.override {
+    inherit mpi;
+    enableShared = false;
+    enableBigInt = with64BitIndices;
+    enableComplex = petsc-scalar-type == "complex";
+  };
+
+  p4est' = p4est.override (prev: {
+    p4est-sc = prev.p4est-sc.override { inherit mpi; };
+  });
+in
+stdenv.mkDerivation (finalAttrs: {
   pname = "petsc";
-  version = "3.19.4";
+  version = "3.21.1";
 
-  src = fetchurl {
-    url = "http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-${version}.tar.gz";
-    sha256 = "sha256-fJQbcb5Sw7dkIU5JLfYBCdEvl/fYVMl6RN8MTZWLOQY=";
+  src = fetchFromGitLab {
+    owner = "petsc";
+    repo = "petsc";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-Td9Avc8ttQt3cRhmB7cCbQU+DaRjrOuVS8wybzzROhM=";
   };
 
   inherit mpiSupport;
-  withp4est = petsc-withp4est;
 
   strictDeps = true;
-  nativeBuildInputs = [ python3 gfortran ]
-    ++ lib.optional mpiSupport mpi
-    ++ lib.optional (mpiSupport && mpi.pname == "openmpi") openssh
-  ;
-  buildInputs = [ blas lapack ]
-    ++ lib.optional withp4est p4est
-  ;
 
-  prePatch = lib.optionalString stdenv.isDarwin ''
-    substituteInPlace config/install.py \
-      --replace /usr/bin/install_name_tool ${darwin.cctools}/bin/install_name_tool
-  '';
+  nativeBuildInputs = [
+    python3
+    gfortran
+  ];
+
+  buildInputs = lib.optionals withP4est [ p4est ]; # needed for propagation
+
+  nativeCheckInputs = [ openssh ];
 
   # Both OpenMPI and MPICH get confused by the sandbox environment and spew errors like this (both to stdout and stderr):
   #     [hwloc/linux] failed to find sysfs cpu topology directory, aborting linux discovery.
-  #     [1684747490.391106] [localhost:14258:0]       tcp_iface.c:837  UCX  ERROR opendir(/sys/class/net) failed: No such file or directory
+  #     [1684747490.391106] [localhost:14258:0]       tcp_iface.c:837  UCX  ERROR scandir(/sys/class/net) failed: No such file or directory
   # These messages contaminate test output, which makes the quicktest suite to fail. The patch adds filtering for these messages.
   patches = [ ./filter_mpi_warnings.patch ];
 
+  postPatch =
+    lib.optionals withChaco ''
+      substituteInPlace config/BuildSystem/config/packages/Chaco.py \
+          --replace-fail "'https://bitbucket.org/petsc/pkg-chaco/get/'+self.gitcommit+'.tar.gz'" "'file://${chaco-src}'";
+    ''
+    + lib.optionalString withMumps ''
+      substituteInPlace config/BuildSystem/config/packages/MUMPS.py \
+          --replace-fail "'https://graal.ens-lyon.fr/MUMPS/MUMPS_'+self.version+'.tar.gz'" "'file://${mumps-src}'" \
+          --replace-fail "/bin/rm" "rm"
+    ''
+    + lib.optionalString stdenv.isDarwin ''
+      substituteInPlace config/install.py \
+        --replace-fail "/usr/bin/install_name_tool" "${darwin.cctools}/bin/install_name_tool"
+    '';
+
   preConfigure = ''
-    patchShebangs ./lib/petsc/bin
-    configureFlagsArray=(
-      $configureFlagsArray
-      ${if !mpiSupport then ''
-        "--with-mpi=0"
-      '' else ''
-        "--CC=mpicc"
-        "--with-cxx=mpicxx"
-        "--with-fc=mpif90"
-        "--with-mpi=1"
-      ''}
-      ${lib.optionalString withp4est ''
-        "--with-p4est=1"
-        "--with-zlib-include=${zlib.dev}/include"
-        "--with-zlib-lib=-L${zlib}/lib -lz"
-      ''}
-      "--with-blas=1"
-      "--with-lapack=1"
+    patchShebangs ./configure ./lib/petsc/bin
+    configureFlagsArray+=(
       "--with-scalar-type=${petsc-scalar-type}"
       "--with-precision=${petsc-precision}"
+      "--with-64-bit-indices=${if with64BitIndices then "1" else "0"}"
+
+      ${withLibrary "blaslapack" blaslapack true}
+      ${withLibrary "mpi" mpi mpiSupport}
+      ${withLibrary "sowing" sowing true}
+      ${withLibrary "hdf5" hdf5 withHdf5}
+      ${withLibrary "scalapack" scalapack' withScalapack}
+      ${withLibrary "ptscotch" scotch' withPtscotch}
+      ${withLibrary "hypre" hypre' withHypre}
+      ${withLibrary "superlu" superlu withSuperlu}
+
+      ${withLibrary "zlib" zlib withP4est}
+      ${withLibrary "p4est" p4est' withP4est}
+
+      ${lib.optionalString withChaco ''
+        "--download-chaco"
+      ''}
+      ${lib.optionalString withMumps ''
+        "--download-mumps"
+      ''}
+
       ${lib.optionalString petsc-optimized ''
         "--with-debugging=0"
         COPTFLAGS='-g -O3'
@@ -81,16 +179,30 @@ stdenv.mkDerivation rec {
       ''}
     )
   '';
-
-  configureScript = "python ./configure";
+  /*
+    configurePhase = ''
+      runHook preConfigure
+      ./configure "''${configureFlagsArray[@]}" || true
+      cat configure.log
+      runHook postConfigure
+      '';
+  */
 
   enableParallelBuilding = true;
-  doCheck = stdenv.hostPlatform == stdenv.buildPlatform;
 
-  meta = with lib; {
+  # only run tests after they have been placed into $out
+  # workaround for `cannot find -lpetsc: No such file or directory`
+  doCheck = false;
+  doInstallCheck = stdenv.hostPlatform == stdenv.buildPlatform;
+  installCheckTarget = "check";
+
+  meta = {
     description = "Portable Extensible Toolkit for Scientific computation";
     homepage = "https://www.mcs.anl.gov/petsc/index.html";
-    license = licenses.bsd2;
-    maintainers = with maintainers; [ cburstedde ];
+    license = lib.licenses.bsd2;
+    maintainers = with lib.maintainers; [
+      cburstedde
+      tomasajt
+    ];
   };
-}
+})

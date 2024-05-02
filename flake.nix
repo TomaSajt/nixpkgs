@@ -15,6 +15,9 @@
       forAllSystems = lib.genAttrs lib.systems.flakeExposed;
     in
     {
+      asd = with self.legacyPackages.x86_64-linux; (
+        (python311.withPackages (ps: with ps; [ firedrake pytest firedrake.pytest-mpi pytest-xdist])).env
+      );
       lib = lib.extend (final: prev: {
 
         nixos = import ./nixos/lib { lib = final; };

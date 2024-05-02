@@ -1,0 +1,13 @@
+diff --git a/firedrake/supermeshing.py b/firedrake/supermeshing.py
+index 861d21d..f7c425f 100644
+--- a/firedrake/supermeshing.py
++++ b/firedrake/supermeshing.py
+@@ -427,7 +427,7 @@ each supermesh cell.
+         "complex_mode": 1 if complex_mode else 0
+     }
+ 
+-    dirs = get_petsc_dir() + (sys.prefix, )
++    dirs = get_petsc_dir() + ("@libsupermesh_dir@", )
+     includes = ["-I%s/include" % d for d in dirs]
+     libs = ["-L%s/lib" % d for d in dirs]
+     libs = libs + ["-Wl,-rpath,%s/lib" % d for d in dirs] + ["-lpetsc", "-lsupermesh"]

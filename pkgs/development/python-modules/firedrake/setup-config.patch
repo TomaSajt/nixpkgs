@@ -1,0 +1,13 @@
+diff --git a/firedrake_configuration/__init__.py b/firedrake_configuration/__init__.py
+index b7970ab..a019d64 100644
+--- a/firedrake_configuration/__init__.py
++++ b/firedrake_configuration/__init__.py
+@@ -36,6 +36,8 @@ def petsc_packages():
+ options = _config.get("options", {})
+ options["with_parmetis"] = "parmetis" in petsc_packages()
+ _config["options"] = options
++_config["options"]["cache_dir"] = os.path.expanduser("~/.cache")
++_config["options"]["petsc_int_type"] = "int32"
+ 
+ 
+ def get_config():
