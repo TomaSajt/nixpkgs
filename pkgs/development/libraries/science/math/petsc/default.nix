@@ -131,7 +131,7 @@ stdenv.mkDerivation (finalAttrs: {
   patches = [ ./filter_mpi_warnings.patch ];
 
   postPatch =
-    lib.optionals withChaco ''
+    lib.optionalString withChaco ''
       substituteInPlace config/BuildSystem/config/packages/Chaco.py \
           --replace-fail "'https://bitbucket.org/petsc/pkg-chaco/get/'+self.gitcommit+'.tar.gz'" "'file://${chaco-src}'";
     ''
