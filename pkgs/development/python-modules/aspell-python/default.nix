@@ -3,17 +3,15 @@
 , aspellDicts
 , buildPythonPackage
 , fetchPypi
-, isPy27
 , pytestCheckHook
 , pythonAtLeast
+, setuptools
 }:
 
 buildPythonPackage rec {
   pname = "aspell-python";
   version = "1.15";
-  format = "setuptools";
-
-  disabled = isPy27;
+  pyproject = true;
 
   src = fetchPypi {
     pname = "aspell-python-py3";
@@ -21,6 +19,10 @@ buildPythonPackage rec {
     extension = "tar.bz2";
     hash = "sha256-IEKRDmQY5fOH9bQk0dkUAy7UzpBOoZW4cNtVvLMcs40=";
   };
+
+  build-system = [
+    setuptools
+  ];
 
   buildInputs = [
     aspell
