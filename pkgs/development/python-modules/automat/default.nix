@@ -4,14 +4,15 @@
 , attrs
 , pytest-benchmark
 , pytestCheckHook
+, setuptools
 , setuptools-scm
 , six
 }:
 
 let automat = buildPythonPackage rec {
-  version = "22.10.0";
-  format = "setuptools";
   pname = "automat";
+  version = "22.10.0";
+  pyproject = true;
 
   src = fetchPypi {
     pname = "Automat";
@@ -19,11 +20,12 @@ let automat = buildPythonPackage rec {
     hash = "sha256-5WvrhO2tGdzBHTDo2biV913ute9elrhKRnBms7hLsE4=";
   };
 
-  nativeBuildInputs = [
+  build-system = [
+    setuptools
     setuptools-scm
   ];
 
-  propagatedBuildInputs = [
+  dependencies = [
     six
     attrs
   ];
