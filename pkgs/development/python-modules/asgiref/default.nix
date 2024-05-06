@@ -5,13 +5,14 @@
 , pytest-asyncio
 , pytestCheckHook
 , pythonOlder
+, setuptools
 , typing-extensions
 }:
 
 buildPythonPackage rec {
-  version = "3.7.2";
   pname = "asgiref";
-  format = "setuptools";
+  version = "3.7.2";
+  pyproject = true;
 
   disabled = pythonOlder "3.7";
 
@@ -22,7 +23,11 @@ buildPythonPackage rec {
     hash = "sha256-VW1PBh6+nLMD7qxmL83ymuxCPYKVY3qGKsB7ZiMqMu8=";
   };
 
-  propagatedBuildInputs = [
+  build-system = [
+    setuptools
+  ];
+
+  dependencies = [
     typing-extensions
   ];
 
