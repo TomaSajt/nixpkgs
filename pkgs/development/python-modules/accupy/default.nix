@@ -3,32 +3,35 @@
 , buildPythonPackage
 , fetchFromGitHub
 , pythonOlder
+, setuptools
+, pybind11
+, eigen
 , mpmath
 , numpy
-, pybind11
 , pyfma
-, eigen
 , importlib-metadata
 , pytestCheckHook
-, matplotlib
 , dufte
+, matplotlib
 , perfplot
 }:
 
 buildPythonPackage rec {
   pname = "accupy";
   version = "0.3.6";
-  format = "setuptools";
+  pyproject = true;
+
   disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "nschloe";
-    repo = pname;
+    repo = "accupy";
     rev = version;
-    sha256 = "0sxkwpp2xy2jgakhdxr4nh1cspqv8l89kz6s832h05pbpyc0n767";
+    hash = "sha256-xxwLmL/rFgDFQNr8mRBFG1/NArQk9wanelL4Lu7ls2s=";
   };
 
-  nativeBuildInputs = [
+  build-system = [
+    setuptools
     pybind11
   ];
 
@@ -36,22 +39,22 @@ buildPythonPackage rec {
     eigen
   ];
 
-  propagatedBuildInputs = [
+  dependencies = [
     mpmath
     numpy
     pyfma
   ] ++ lib.optional (pythonOlder "3.8") importlib-metadata;
 
   nativeCheckInputs = [
-    perfplot
     pytestCheckHook
-    matplotlib
     dufte
+    matplotlib
+    perfplot
   ];
 
   postConfigure = ''
    substituteInPlace setup.py \
-     --replace "/usr/include/eigen3/" "${eigen}/include/eigen3/"
+     --replace-fail "/usr/include/eigen3/" "${eigen}/include/eigen3/"
   '';
 
   preBuild = ''
@@ -66,10 +69,12 @@ buildPythonPackage rec {
   # decouple ourselves from an unnecessary build dep
   preCheck = ''
     for f in test/test*.py ; do
-      substituteInPlace $f --replace 'import perfplot' ""
+      substituteInPlace $f --replace-quiet 'import perfplot' ""
     done
   '';
+
   disabledTests = [ "test_speed_comparison1" "test_speed_comparison2" ];
+
   pythonImportsCheck = [ "accupy" ];
 
   meta = with lib; {
