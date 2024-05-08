@@ -1,4 +1,9 @@
-{ lib, buildGoModule, fetchFromGitHub, installShellFiles }:
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
+  installShellFiles,
+}:
 
 buildGoModule rec {
   pname = "ent-go";
@@ -8,7 +13,7 @@ buildGoModule rec {
     owner = "ent";
     repo = "ent";
     rev = "v${version}";
-    sha256 = "sha256-g4n9cOTv/35WkvMjrtP2eEcbiu5kiafVXifz1zlEuCY=";
+    hash = "sha256-g4n9cOTv/35WkvMjrtP2eEcbiu5kiafVXifz1zlEuCY=";
   };
 
   vendorHash = "sha256-DUi4Ik+qFbx4LIm9MDJ4H9/+sIfCzK8MMGKp0GIGX7w=";
@@ -21,6 +26,9 @@ buildGoModule rec {
   ];
 
   nativeBuildInputs = [ installShellFiles ];
+
+  # tries to "go run" itself
+  doCheck = false;
 
   postInstall = ''
     installShellCompletion --cmd ent \
@@ -38,4 +46,3 @@ buildGoModule rec {
     mainProgram = "ent";
   };
 }
-
