@@ -9,6 +9,10 @@
 , gitMinimal
 , yarn
 }:
+
+let
+  electronDist = electron + (if stdenv.isDarwin then "/Applications" else "/libexec/electron");
+in
 stdenv.mkDerivation rec {
   pname = "whalebird";
   version = "6.1.0";
@@ -34,7 +38,7 @@ stdenv.mkDerivation rec {
       export HOME=$(mktemp -d)
       yarn config set enableTelemetry 0
       yarn config set cacheFolder $out
-      yarn config set --json supportedArchitectures.os '[ "linux" ]'
+      yarn config set --json supportedArchitectures.os '[ "linux", "macos" ]'
       yarn config set --json supportedArchitectures.cpu '[ "arm64", "x64" ]'
       yarn
     '';
@@ -45,8 +49,9 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [
     makeWrapper
-    copyDesktopItems
     yarn
+  ] ++ lib.optionals (!stdenv.isDarwin) [
+    copyDesktopItems
   ];
 
   desktopItems = [
@@ -60,7 +65,10 @@ stdenv.mkDerivation rec {
     })
   ];
 
-  ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+  env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+
+  # disable code signing on Darwin
+  env.CSC_IDENTITY_AUTO_DISCOVERY = "false";
 
   buildPhase = ''
     runHook preBuild
@@ -71,9 +79,13 @@ stdenv.mkDerivation rec {
 
     yarn --immutable-cache
     yarn run nextron build --no-pack
+
+    cp -r ${electronDist} electron-dist
+    chmod -R u+w electron-dist
+
     yarn run electron-builder --dir \
       --config electron-builder.yml \
-      -c.electronDist="${electron}/libexec/electron" \
+      -c.electronDist=electron-dist \
       -c.electronVersion=${electron.version}
 
     runHook postBuild
@@ -82,21 +94,29 @@ stdenv.mkDerivation rec {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/opt
-    cp -r ./dist/*-unpacked $out/opt/Whalebird
+    ${lib.optionalString (!stdenv.isDarwin) ''
+      mkdir -p $out/opt
+      cp -r ./dist/*-unpacked $out/opt/Whalebird
 
-    # Install icons
-    # Taken from https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=whalebird#n41
-    for i in 16 32 128 256 512; do
-      install -Dm644 "resources/icons/icon.iconset/icon_$i"x"$i.png" \
-        "$out/share/icons/hicolor/$i"x"$i/apps/whalebird.png"
-    done
-    install -Dm644 "resources/icons/icon.iconset/icon_32x32@2x.png" \
-      "$out/share/icons/hicolor/64x64/apps/whalebird.png"
+      # Install icons
+      # Taken from https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=whalebird#n41
+      for i in 16 32 128 256 512; do
+        install -Dm644 "resources/icons/icon.iconset/icon_$i"x"$i.png" \
+          "$out/share/icons/hicolor/$i"x"$i/apps/whalebird.png"
+      done
+      install -Dm644 "resources/icons/icon.iconset/icon_32x32@2x.png" \
+        "$out/share/icons/hicolor/64x64/apps/whalebird.png"
 
-    makeWrapper "${electron}/bin/electron" "$out/bin/whalebird" \
-      --add-flags "$out/opt/Whalebird/resources/app.asar" \
-      --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}"
+      makeWrapper "${electron}/bin/electron" "$out/bin/whalebird" \
+        --add-flags "$out/opt/Whalebird/resources/app.asar" \
+        --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}"
+    ''}
+
+    ${lib.optionalString stdenv.isDarwin ''
+      mkdir -p "$out/Applications"
+      cp -r dist/mac*/Whalebird.app "$out/Applications"
+      makeWrapper "$out/Applications/Whalebird.app/Contents/MacOS/Whalebird" "$out/bin/whalebird"
+    ''}
 
     runHook postInstall
   '';
@@ -108,6 +128,6 @@ stdenv.mkDerivation rec {
     changelog = "https://github.com/h3poteto/whalebird-desktop/releases/tag/v${version}";
     license = licenses.gpl3Only;
     maintainers = with maintainers; [ wolfangaukang colinsane weathercold ];
-    platforms = [ "x86_64-linux" "aarch64-linux" ];
+    platforms = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
   };
 }
