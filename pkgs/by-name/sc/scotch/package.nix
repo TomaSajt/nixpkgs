@@ -6,6 +6,7 @@
   mpi,
   flex,
   zlib,
+  withIntSize64 ? false,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -31,6 +32,8 @@ stdenv.mkDerivation (finalAttrs: {
     cd src
     ln -s Make.inc/Makefile.inc.x86-64_pc_linux2 Makefile.inc
   '';
+
+  env.NIX_CFLAGS_COMPILE = lib.optionalString withIntSize64 "-DINTSIZE64";
 
   buildFlags = [ "scotch ptscotch" ];
 
