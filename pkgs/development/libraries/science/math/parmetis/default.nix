@@ -2,6 +2,8 @@
 , fetchurl
 , cmake
 , mpi
+, metis
+, more
 }:
 
 stdenv.mkDerivation rec {
@@ -13,8 +15,9 @@ stdenv.mkDerivation rec {
     sha256 = "0pvfpvb36djvqlcc3lq7si0c5xpb2cqndjg8wvzg35ygnwqs5ngj";
   };
 
-  nativeBuildInputs = [ cmake ];
-  buildInputs = [ mpi ];
+  nativeBuildInputs = [ cmake more ];
+
+  buildInputs = [ mpi metis ];
 
   # metis and GKlib are packaged with distribution
   # AUR https://aur.archlinux.org/packages/parmetis/ has reported that

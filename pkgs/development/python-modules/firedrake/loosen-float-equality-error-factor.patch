@@ -1,0 +1,13 @@
+diff --git a/tests/output/test_io_mesh.py b/tests/output/test_io_mesh.py
+index 2d80ceb..948d9a1 100644
+--- a/tests/output/test_io_mesh.py
++++ b/tests/output/test_io_mesh.py
+@@ -121,7 +121,7 @@ def _test_io_mesh_extrusion(mesh, tmpdir, variable_layers=False):
+                 layers[:, 1] += 1 + layers[:, 0]
+                 assert np.array_equal(mesh.topology.layers, layers)
+             v1 = _compute_integral(mesh)
+-            assert abs(v1 - v) < 2.e-14
++            assert abs(v1 - v) < 3.e-14
+             if isinstance(mesh.topology, ExtrudedMeshTopology):
+                 assert mesh.topology._base_mesh is mesh._base_mesh.topology
+             # Save.

@@ -2,6 +2,7 @@
   lib,
   buildPythonPackage,
   fetchFromGitHub,
+  substituteAll,
   hatchling,
   mpi4py,
   mpi,
@@ -19,6 +20,13 @@ buildPythonPackage {
     rev = "8241bdc453da753e783f9a9bf8cde56787e10a40";
     hash = "sha256-aAPJWCtfpDqV6oowkAD/VPVIqXea6paDK+uCxjdSNoI=";
   };
+
+  patches = [
+    (substituteAll {
+      src = ./pytest-mpi-set-mpiexec.patch;
+      mpiexec = lib.getExe' mpi "mpiexec";
+    })
+  ];
 
   build-system = [ hatchling ];
 

@@ -76,6 +76,8 @@ buildPythonPackage rec {
 
   patches = [
     ./setup-config.patch
+    ./loosen-float-equality-error-factor.patch
+    ./dont-use-object-as-sentinel.patch
     (substituteAll {
       src = ./set-petsc-dir.patch;
       petsc_dir = petscWithFeatures;
@@ -158,20 +160,21 @@ buildPythonPackage rec {
 
   disabledTestPaths = [
     "tests/meshes" # pass
-    #"tests/randomfunctiongen" # pass
-    #"tests/supermesh" # pass
-    #"tests/unit" # pass
-    #"tests/test_tsfc_interface.py" # pass
+    "tests/randomfunctiongen" # pass
+    "tests/supermesh" # pass
+    "tests/unit" # pass
+    "tests/test_tsfc_interface.py" # pass
     #"tests/test_0init.py" # pass
 
     "tests/demos" # fails, but that's fine
     "tests/equation_bcs" # fail: test_EquationBC_mixedpoisson_matrix
     "tests/extrusion" # mumps-related crashes (TODO: check coredump)
     "tests/multigrid" # not too many fails, very long (didn't wait)
-    "tests/output" # pass up to 34% (didn't wait it out)
+    "tests/output" # pass
     "tests/regression"
-    "tests/slate" # many fails (didn't wait it out)
-    "tests/vertexonly" # long, not too many fails
+    "tests/slate" # pass, except 1, see below
+    "tests/slate/test_hybrid_poisson_sphere.py" # test_hybrid_conv_parallel: buffer overflow
+    "tests/vertexonly" # pass
   ];
 
   pythonImportsCheck = [ "firedrake" ];

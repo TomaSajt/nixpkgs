@@ -15,7 +15,7 @@
   with64BitIndices ? false,
   mpiSupport ? true,
   mpi, # generic mpi dependency
-  openssh, # required for openmpi tests
+  mpiCheckPhaseHook,
   withP4est ? false,
   p4est,
   zlib, # propagated by p4est but required by petsc
@@ -25,6 +25,8 @@
   scotch,
   withSuperlu ? false,
   superlu,
+  withSuperlu-dist ? true,
+  cmake,
   withHypre ? false,
   hypre,
   withScalapack ? false,
@@ -39,6 +41,8 @@ assert withP4est -> p4est.mpiSupport;
 assert withMumps -> withScalapack;
 assert withChaco -> !with64BitIndices; # chaco is 32 bit only
 assert withSuperlu -> !with64BitIndices; # SuperLU is 32 bit only
+assert withSuperlu-dist -> !with64BitIndices; # SuperLU_dist is 32 bit only
+assert withSuperlu -> !withSuperlu-dist; # Both can't be installed
 
 let
   blaslapack = buildEnv {
@@ -77,6 +81,11 @@ let
     url = "https://graal.ens-lyon.fr/MUMPS/MUMPS_5.6.2.tar.gz";
     hash = "sha256-E6LBr/K9Gqkv6Et7NdiPQ0NAGZY8oJ736MkIIajx1Zo=";
   };
+  superlu-dist-src = fetchurl {
+    url = "https://github.com/xiaoyeli/superlu_dist/archive/v8.2.1.tar.gz";
+    hash = "sha256-t30GXK+mvBodzBW/I/2FT1SwV2KxZbrc/8GVg1rSvd8=";
+  };
+
   sowing = callPackage ./sowing.nix { };
   hdf5 = (hdf5-mpi.override { inherit mpi; });
   scotch' =
@@ -118,11 +127,13 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     python3
     gfortran
-  ];
+  ] ++ lib.optionals withSuperlu-dist [ cmake ];
+
+  dontUseCmakeConfigure = true;
 
   buildInputs = lib.optionals withP4est [ p4est ]; # needed for propagation
 
-  nativeCheckInputs = [ openssh ];
+  nativeCheckInputs = lib.optionals mpiSupport [ mpiCheckPhaseHook ];
 
   # Both OpenMPI and MPICH get confused by the sandbox environment and spew errors like this (both to stdout and stderr):
   #     [hwloc/linux] failed to find sysfs cpu topology directory, aborting linux discovery.
@@ -139,6 +150,10 @@ stdenv.mkDerivation (finalAttrs: {
       substituteInPlace config/BuildSystem/config/packages/MUMPS.py \
           --replace-fail "'https://graal.ens-lyon.fr/MUMPS/MUMPS_'+self.version+'.tar.gz'" "'file://${mumps-src}'" \
           --replace-fail "/bin/rm" "rm"
+    ''
+    + lib.optionalString withSuperlu-dist ''
+      substituteInPlace config/BuildSystem/config/packages/SuperLU_DIST.py \
+          --replace-fail "'https://github.com/xiaoyeli/superlu_dist/archive/'+self.gitcommit+'.tar.gz'" "'file://${superlu-dist-src}'"
     ''
     + lib.optionalString stdenv.isDarwin ''
       substituteInPlace config/install.py \
@@ -169,6 +184,9 @@ stdenv.mkDerivation (finalAttrs: {
       ''}
       ${lib.optionalString withMumps ''
         "--download-mumps"
+      ''}
+      ${lib.optionalString withSuperlu-dist ''
+        "--download-superlu_dist"
       ''}
 
       ${lib.optionalString petsc-optimized ''

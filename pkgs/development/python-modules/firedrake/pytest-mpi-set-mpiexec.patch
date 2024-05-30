@@ -1,0 +1,13 @@
+diff --git a/pytest_mpi.py b/pytest_mpi.py
+index 607e25a..473e3b3 100644
+--- a/pytest_mpi.py
++++ b/pytest_mpi.py
+@@ -183,7 +183,7 @@ def _set_parallel_callback(item):
+     ]
+ 
+     cmd = [
+-        "mpiexec", "-n", "1", "-genv", CHILD_PROCESS_FLAG, "1", "python", "-m", "pytest"
++        "@mpiexec@", "-n", "1", "-genv", CHILD_PROCESS_FLAG, "1", "python", "-m", "pytest"
+     ] + pytest_args + [
+         ":", "-n", f"{nprocs-1}", "python", "-m", "pytest"
+     ] + quieter_pytest_args

@@ -1,0 +1,26 @@
+diff --git a/firedrake/preconditioners/asm.py b/firedrake/preconditioners/asm.py
+index 9c44664..297a6a5 100644
+--- a/firedrake/preconditioners/asm.py
++++ b/firedrake/preconditioners/asm.py
+@@ -65,7 +65,7 @@ class ASMPatchPC(PCBase):
+                 opts["sub_pc_factor_shift_type"] = "NONE"
+ 
+             # If an ordering type is provided, PCASM should not sort patch indices, otherwise it can.
+-            sentinel = object()
++            sentinel = "__dummy__"
+             ordering = PETSc.Options().getString(self.prefix + "mat_ordering_type", default=sentinel)
+             asmpc.setASMSortIndices(ordering is sentinel)
+ 
+diff --git a/firedrake/slate/static_condensation/la_utils.py b/firedrake/slate/static_condensation/la_utils.py
+index 0748558..6f13df7 100644
+--- a/firedrake/slate/static_condensation/la_utils.py
++++ b/firedrake/slate/static_condensation/la_utils.py
+@@ -338,7 +338,7 @@ class SchurComplementBuilder(object):
+             self.list_split_trace_ops_transpose = [K0, K1]
+ 
+     def _check_options(self, valid):
+-        default = object()
++        default = "__dummy__"
+         opts = PETSc.Options(self.prefix)
+         for key, supported in valid:
+             value = opts.getString(key, default=default)
