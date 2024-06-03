@@ -11,14 +11,14 @@
 let
   mupdf-cxx = mupdf.override { enableCxx = true; };
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "librum";
   version = "0.12.2";
 
   src = fetchFromGitHub {
     owner = "Librum-Reader";
     repo = "Librum";
-    rev = "v.${version}";
+    rev = "v.${finalAttrs.version}";
     fetchSubmodules = true;
     hash = "sha256-Iwcbcz8LrznFP8rfW6mg9p7klAtTx4daFxylTeFKrH0=";
   };
@@ -65,4 +65,4 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ aleksana oluceps ];
     platforms = platforms.unix;
   };
-}
+})
