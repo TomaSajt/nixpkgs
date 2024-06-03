@@ -7,12 +7,12 @@
 , gnugrep
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "likwid";
   version = "5.3.0";
 
   src = fetchurl {
-    url = "https://ftp.fau.de/pub/likwid/likwid-${version}.tar.gz";
+    url = "https://ftp.fau.de/pub/likwid/likwid-${finalAttrs.version}.tar.gz";
     hash = "sha256-wpDlVMQlMSSsKriwVuFO5NI5ZrjJ+/oQuoH3WuVDzk4=";
   };
 
@@ -42,4 +42,4 @@ stdenv.mkDerivation rec {
     maintainers = [ maintainers.vbgl ];
     mainProgram = "likwid-perfctr";
   };
-}
+})
