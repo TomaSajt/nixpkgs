@@ -10,14 +10,14 @@
 , lib3270
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libv3270";
   version = "5.4";
 
   src = fetchFromGitHub {
     owner = "PerryWerneck";
-    repo = pname;
-    rev = version;
+    repo = "libv3270";
+    rev = finalAttrs.version;
     hash = "sha256-Z3FvxPa1pfeECxfB5ZL6gwhkbTKFpfO3D/zLVLF+uiI=";
   };
 
@@ -55,4 +55,4 @@ stdenv.mkDerivation rec {
     license = licenses.lgpl3Plus;
     maintainers = [ maintainers.vifino ];
   };
-}
+})
