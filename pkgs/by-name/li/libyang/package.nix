@@ -13,14 +13,14 @@
 , gitUpdater
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libyang";
   version = "2.1.148";
 
   src = fetchFromGitHub {
     owner = "CESNET";
     repo = "libyang";
-    rev = "v${version}";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-uYZJo8lUv6tq0MRRJvbTS/8t1eZNGqcMb5k5sVCwMJM=";
   };
 
@@ -54,4 +54,4 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
     maintainers = with maintainers; [ woffs ];
   };
-}
+})
