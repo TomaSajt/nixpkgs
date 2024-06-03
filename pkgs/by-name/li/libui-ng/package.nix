@@ -10,7 +10,7 @@
 , unstableGitUpdater
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "libui-ng";
   version = "4.1-unstable-2024-05-19";
 
