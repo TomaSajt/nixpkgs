@@ -8,7 +8,7 @@
 , json-glib
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libipuz";
   version = "0.4.5";
 
@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
     domain = "gitlab.gnome.org";
     owner = "jrb";
     repo = "libipuz";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-psC2cFqSTlToCtCxwosXyJbmX/96AEI0xqzXtlc/HQE=";
   };
 
@@ -39,4 +39,4 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ aleksana ];
     platforms = platforms.unix;
   };
-}
+})
