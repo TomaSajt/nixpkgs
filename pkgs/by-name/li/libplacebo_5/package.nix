@@ -15,15 +15,15 @@
 , libdovi
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libplacebo";
   version = "5.264.1";
 
   src = fetchFromGitLab {
     domain = "code.videolan.org";
     owner = "videolan";
-    repo = pname;
-    rev = "v${version}";
+    repo = "libplacebo";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-YEefuEfJURi5/wswQKskA/J1UGzessQQkBpltJ0Spq8=";
   };
 
@@ -74,4 +74,4 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ primeos tadeokondrak ];
     platforms = platforms.all;
   };
-}
+})
