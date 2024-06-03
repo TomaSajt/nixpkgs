@@ -1,11 +1,11 @@
 { lib, stdenv, fetchurl, autoreconfHook, pkg-config, libzen, zlib }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libmediainfo";
   version = "24.04";
 
   src = fetchurl {
-    url = "https://mediaarea.net/download/source/libmediainfo/${version}/libmediainfo_${version}.tar.xz";
+    url = "https://mediaarea.net/download/source/libmediainfo/${finalAttrs.version}/libmediainfo_${finalAttrs.version}.tar.xz";
     hash = "sha256-dqb/BgiHdz8ll3tYiuUISEuxLRHLeivjMi2qnG5T8bI=";
   };
 
@@ -36,4 +36,4 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
     maintainers = [ maintainers.devhell ];
   };
-}
+})
