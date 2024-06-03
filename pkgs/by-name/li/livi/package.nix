@@ -13,7 +13,7 @@
 , libGL
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "livi";
   version = "0.1.0";
 
@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
     owner = "guidog";
     repo = "livi";
     domain = "gitlab.gnome.org";
-    rev = "v${version}";
+    rev = "v${finalAttrs.version}";
     sha256 = "sha256-FJ43BDRsZUFuRrNFWuEJ/nSO+suWad2QvqhwzuXWBtY=";
   };
   nativeBuildInputs = [
@@ -52,4 +52,4 @@ stdenv.mkDerivation rec {
     mainProgram = "livi";
     maintainers = with maintainers; [ mksafavi ];
   };
-}
+})
