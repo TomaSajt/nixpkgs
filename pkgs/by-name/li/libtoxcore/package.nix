@@ -12,7 +12,7 @@
 }:
 
 let buildToxAV = !stdenv.isAarch32;
-in stdenv.mkDerivation rec {
+in stdenv.mkDerivation (finalAttrs: {
   pname = "libtoxcore";
   version = "0.2.19";
 
@@ -20,7 +20,7 @@ in stdenv.mkDerivation rec {
     # We need the prepared sources tarball.
     fetchurl {
       url =
-        "https://github.com/TokTok/c-toxcore/releases/download/v${version}/c-toxcore-${version}.tar.gz";
+        "https://github.com/TokTok/c-toxcore/releases/download/v${finalAttrs.version}/c-toxcore-${finalAttrs.version}.tar.gz";
       sha256 = "sha256-i0GPZHDbCFz1mpkVaFYTVWVW3yv0JxSPGBS3sRhihZQ=";
     };
 
@@ -58,4 +58,4 @@ in stdenv.mkDerivation rec {
     maintainers = with lib.maintainers; [ peterhoeg ehmry ];
     platforms = lib.platforms.all;
   };
-}
+})
