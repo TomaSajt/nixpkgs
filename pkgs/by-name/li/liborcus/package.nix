@@ -10,14 +10,14 @@
 , zlib
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "liborcus";
   version = "0.19.2";
 
   src = fetchFromGitLab {
     owner = "orcus";
     repo = "orcus";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-+9C52H99c/kL5DEIoXV+WcLnTftRbicRLQN/FdIXBw8=";
   };
 
@@ -42,4 +42,4 @@ stdenv.mkDerivation rec {
     maintainers = [];
     platforms = platforms.all;
   };
-}
+})
