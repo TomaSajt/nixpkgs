@@ -16,7 +16,7 @@
 , docbook-xsl-nons
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libgedit-tepl";
   version = "6.10.0";
 
@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "gedit-technology";
     repo = "libgedit-tepl";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-lGmOaDNu+iqwpeaP0AL28exoTqx1j03Z8gdhTBgk1i8=";
   };
 
@@ -60,4 +60,4 @@ stdenv.mkDerivation rec {
     license = licenses.lgpl3Plus;
     platforms = platforms.linux;
   };
-}
+})
