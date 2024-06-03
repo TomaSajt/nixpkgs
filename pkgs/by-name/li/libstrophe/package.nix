@@ -9,14 +9,14 @@
 , zlib
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libstrophe";
   version = "0.13.1";
 
   src = fetchFromGitHub {
     owner = "strophe";
-    repo = pname;
-    rev = version;
+    repo = "libstrophe";
+    rev = finalAttrs.version;
     hash = "sha256-JMuvWspgXs+1dVWoo6kJVaf6cVvYj8lhyyu4ZILKeOg=";
   };
 
@@ -41,5 +41,5 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
     maintainers = with maintainers; [ devhell flosse ];
   };
-}
+})
 
