@@ -1,11 +1,11 @@
 { lib, stdenv, fetchurl, buildPackages }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libgrapheme";
   version = "2.0.2";
 
   src = fetchurl {
-    url = "https://dl.suckless.org/libgrapheme/libgrapheme-${version}.tar.gz";
+    url = "https://dl.suckless.org/libgrapheme/libgrapheme-${finalAttrs.version}.tar.gz";
     hash = "sha256-pou93edr1Vul1kEWzl5CoT3wRcgcCFLemrYIlqoUMSU=";
   };
 
@@ -22,4 +22,4 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
     maintainers = with maintainers; [ sikmir ];
   };
-}
+})
