@@ -8,14 +8,14 @@
 , python3
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libixion";
   version = "0.19.0";
 
   src = fetchFromGitLab {
     owner = "ixion";
     repo = "ixion";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-BrexWRaxrLTWuoU62kqws3tlSqVOHecSV5MXc4ZezFs=";
   };
 
@@ -38,4 +38,4 @@ stdenv.mkDerivation rec {
     maintainers = [ ];
     platforms = platforms.all;
   };
-}
+})
