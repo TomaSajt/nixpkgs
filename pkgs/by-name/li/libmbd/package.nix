@@ -12,20 +12,20 @@
 assert !blas.isILP64;
 assert !lapack.isILP64;
 
-stdenv.mkDerivation rec {
-  pname = "libMBD";
+stdenv.mkDerivation (finalAttrs: {
+  pname = "libmbd";
   version = "0.12.8";
 
   src = fetchFromGitHub {
     owner = "libmbd";
-    repo = pname;
-    rev = version;
+    repo = "libmbd";
+    rev = finalAttrs.version;
     hash = "sha256-ctUaBLPaZHoV1rU3u1idvPLGbvC9Z17YBxYKCaL7EMk=";
   };
 
   preConfigure = ''
     cat > cmake/libMBDVersionTag.cmake << EOF
-      set(VERSION_TAG "${version}")
+      set(VERSION_TAG "${finalAttrs.version}")
     EOF
   '';
 
@@ -42,4 +42,4 @@ stdenv.mkDerivation rec {
     platforms = platforms.linux;
     maintainers = [ maintainers.sheepforce ];
   };
-}
+})
