@@ -17,13 +17,13 @@
   bzip2,
   python3Packages,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libmamba";
   version = "1.5.8";
   src = fetchFromGitHub {
     owner = "mamba-org";
     repo = "mamba";
-    rev = "${pname}-${version}";
+    rev = "libmamba-${finalAttrs.version}";
     hash = "sha256-sxZDlMFoMLq2EAzwBVO++xvU1C30JoIoZXEX/sqkXS0=";
   };
   nativeBuildInputs = [
@@ -57,4 +57,4 @@ stdenv.mkDerivation rec {
     platforms = lib.platforms.all;
     maintainers = [ lib.maintainers.ericthemagician ];
   };
-}
+})
