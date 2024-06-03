@@ -5,14 +5,14 @@
 , openssl
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libomemo-c";
   version = "0.5.0";
 
   src = fetchFromGitHub {
     owner = "dino";
     repo = "libomemo-c";
-    rev = "v${version}";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-GvHMp0FWoApbYLMhKfNxSBel1xxWWF3TZ4lnkLvu2s4=";
   };
 
@@ -26,4 +26,4 @@ stdenv.mkDerivation rec {
     license = licenses.gpl3Only;
     maintainers = [ maintainers.astro ];
   };
-}
+})
