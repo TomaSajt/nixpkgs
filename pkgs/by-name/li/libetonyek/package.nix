@@ -14,14 +14,14 @@
 , mdds
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libetonyek";
   version = "0.1.10";
 
   src = fetchFromGitHub {
     owner = "LibreOffice";
     repo = "libetonyek";
-    rev = "libetonyek-${version}";
+    rev = "libetonyek-${finalAttrs.version}";
     hash = "sha256-wgyeQj1sY78sbbZT+NZuq9HEKB+ta7wwipbfN3JkyyU=";
   };
 
@@ -51,4 +51,4 @@ stdenv.mkDerivation rec {
     maintainers = [ ];
     platforms = platforms.all;
   };
-}
+})
