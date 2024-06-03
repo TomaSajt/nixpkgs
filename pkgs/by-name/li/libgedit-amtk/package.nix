@@ -15,7 +15,7 @@
 , xvfb-run
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libgedit-amtk";
   version = "5.8.0";
 
@@ -24,7 +24,7 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "gedit-technology";
     repo = "libgedit-amtk";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-U77/KMZw9k9ukebCXVXAsCa4uJaTgw9irfZ/l0303kk=";
   };
 
@@ -73,4 +73,4 @@ stdenv.mkDerivation rec {
     license = licenses.lgpl21Plus;
     platforms = platforms.linux;
   };
-}
+})
