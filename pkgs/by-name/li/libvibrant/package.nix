@@ -8,14 +8,14 @@
 , linuxPackages
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libvibrant";
   version = "2100c09";
 
   src = fetchFromGitHub {
     owner = "libvibrant";
     repo = "libvibrant";
-    rev = version;
+    rev = finalAttrs.version;
     hash = "sha256-nVODwP/PQgYBTHnSplgrkdNOLsF7N+vZ8iPL7gArVNY=";
   };
 
@@ -29,4 +29,4 @@ stdenv.mkDerivation rec {
     platforms = platforms.linux;
     mainProgram = "vibrant-cli";
   };
-}
+})
