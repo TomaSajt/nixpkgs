@@ -1,54 +1,53 @@
-{ lib
-, stdenv
-, fetchurl
-, ant
-, jdk
-, jre
-, makeWrapper
-, stripJavaArchivesHook
+{
+  lib,
+  maven,
+  fetchFromGitHub,
+  fetchpatch,
+  jre,
+  makeWrapper,
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+maven.buildMavenPackage rec {
   pname = "fop";
-  version = "2.8";
+  version = "2.9";
 
-  src = fetchurl {
-    url = "mirror://apache/xmlgraphics/fop/fop-${finalAttrs.version}-src.tar.gz";
-    hash = "sha256-b7Av17wu6Ar/npKOiwYqzlvBFSIuXTpqTacM1sxtBvc=";
+  src = fetchFromGitHub {
+    owner = "apache";
+    repo = "xmlgraphics-fop";
+    rev = "refs/tags/${lib.replaceStrings [ "." ] [ "_" ] version}";
+    hash = "sha256-cTz7GKtI2ETMsxCQajLR1r6jyrLh3U4gEkOkJlCuwxU=";
   };
 
-  nativeBuildInputs = [
-    ant
-    jdk
-    makeWrapper
-    stripJavaArchivesHook
+  patches = [
+    (fetchpatch {
+      name = "also-generate-core-jar.patch";
+      url = "https://github.com/apache/xmlgraphics-fop/commit/fa89ae7b7a349d7f015b6eeb650a839979a8eed0.patch";
+      hash = "sha256-CWQ6mKNbNlR2Rd43+O3qJ4XFmVXwOXrxNX/bYMFlEjc=";
+    })
+    (fetchpatch {
+      name = "fix-jar-classpath.patch";
+      url = "https://github.com/apache/xmlgraphics-fop/commit/699b56779e89d45ae8d8ea517bc7cee57e2f4231.patch";
+      hash = "sha256-aXTu4hhOKc0vo27JZm+jNQq2AeBKtSrZ0I9mULAFOas=";
+    })
   ];
 
-  # Note: not sure if this is needed anymore
-  env.JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF8";
+  mvnHash = "sha256-VEP4vPlbbFalTtH4HMdhkmEnAo8HYPN/BgfyvyS9m10=";
 
-  buildPhase = ''
-    runHook preBuild
+  mvnParameters = "-Dproject.build.outputTimestamp=1980-01-01T00:00:02Z";
 
-    # build only the "package" target, which generates the fop command.
-    ant -f fop/build.xml package
-
-    runHook postBuild
-  '';
+  nativeBuildInputs = [ makeWrapper ];
 
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/lib $out/share/doc/fop
-    cp fop/build/*.jar fop/lib/*.jar $out/lib/
-    cp -r README fop/examples/ $out/share/doc/fop/
+    find -name "*.jar"
+    asd
 
-    # There is a fop script in the source archive, but it has many impurities.
-    # Instead of patching out 90 % of the script, we write our own.
+    install -Dm644 fop*/target/fop*.jar -t $out/share/fop
+
     makeWrapper ${jre}/bin/java $out/bin/fop \
-        --add-flags "-Djava.awt.headless=true" \
-        --add-flags "-classpath $out/lib/\*" \
-        --add-flags "org.apache.fop.cli.Main"
+        --add-flags "-Dfop.home=$out/share/fop" \
+        --add-flags "-jar $out/share/fop/fop-${version}.jar"
 
     runHook postInstall
   '';
@@ -71,11 +70,14 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://xmlgraphics.apache.org/fop/";
     license = lib.licenses.asl20;
     mainProgram = "fop";
-    maintainers = with lib.maintainers; [ bjornfor tomasajt ];
+    maintainers = with lib.maintainers; [
+      bjornfor
+      tomasajt
+    ];
     platforms = jre.meta.platforms;
     sourceProvenance = with lib.sourceTypes; [
       fromSource
       binaryBytecode # source bundles dependencies as jars
     ];
   };
-})
+}
