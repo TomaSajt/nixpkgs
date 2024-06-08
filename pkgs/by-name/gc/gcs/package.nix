@@ -3,6 +3,8 @@
   buildGoModule,
   buildNpmPackage,
   fetchFromGitHub,
+  cacert,
+  unzip,
   pkg-config,
   libGL,
   libX11,
@@ -20,13 +22,26 @@
 
 buildGoModule rec {
   pname = "gcs";
-  version = "5.21.0";
+  version = "5.22.0";
 
   src = fetchFromGitHub {
     owner = "richardwilkes";
     repo = "gcs";
     rev = "v${version}";
-    hash = "sha256-mes1aXh4R1re4sW3xYDWtSIcW7lwkWoAxbcbdyT/W+o=";
+    hash = "sha256-OF4Sjx15gxqDNdJiZ8cNItX0+xZqThf+2rSvfp5s+Mg=";
+
+    nativeBuildInputs = [
+      cacert
+      unzip
+    ];
+
+    # also fetch pdf.js, which is no longer vendored in-tree
+    postFetch = ''
+      cd $out/server/pdf
+      substituteInPlace refresh-pdf.js.sh \
+          --replace-fail '/bin/rm' 'rm'
+      . refresh-pdf.js.sh
+    '';
   };
 
   modPostBuild = ''
@@ -34,7 +49,7 @@ buildGoModule rec {
     sed -i 's|-lmupdf[^ ]* |-lmupdf |g' vendor/github.com/richardwilkes/pdf/pdf.go
   '';
 
-  vendorHash = "sha256-H5GCrrqmDwpCneXawu7kZsRfrQ8hcsbqhpAAG6FCawg=";
+  vendorHash = "sha256-pPAWYFhWE1WX70WfzElJNuHRVbUIRjcpZB7AwFmDi8g=";
 
   frontend = buildNpmPackage {
     name = "${pname}-${version}-frontend";
@@ -42,7 +57,7 @@ buildGoModule rec {
     inherit src;
     sourceRoot = "${src.name}/server/frontend";
 
-    npmDepsHash = "sha256-wP6sjdcjljzmTs0GUMbF2BPo83LKpfdn15sUuMEIn6E=";
+    npmDepsHash = "sha256-6hKrp6hbDqPpKXlzS7nvosDBiadPWKl6WSQ2J8+8WPY=";
 
     installPhase = ''
       runHook preInstall
