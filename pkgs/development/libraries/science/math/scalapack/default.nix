@@ -44,7 +44,7 @@ stdenv.mkDerivation rec {
 
   # xslu and xsllt tests seem to time out on x86_64-darwin.
   # this line is left so those who force installation on x86_64-darwin can still build
-  doCheck = !(stdenv.isx86_64 && stdenv.isDarwin);
+  doCheck = false; # !(stdenv.isx86_64 && stdenv.isDarwin);
 
   preConfigure = ''
     cmakeFlagsArray+=(

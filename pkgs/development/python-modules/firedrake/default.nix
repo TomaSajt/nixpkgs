@@ -38,7 +38,7 @@ let
     inherit mpi;
     withHdf5 = true;
     withPtscotch = true;
-    withSuperlu = true;
+    withSuperlu-dist = true;
     withHypre = true;
     withScalapack = true;
     withChaco = true;
@@ -159,22 +159,23 @@ buildPythonPackage rec {
   pytestFlagsArray = [ "-vv" ];
 
   disabledTestPaths = [
-    "tests/meshes" # pass
-    "tests/randomfunctiongen" # pass
-    "tests/supermesh" # pass
-    "tests/unit" # pass
-    "tests/test_tsfc_interface.py" # pass
+    #"tests/meshes" # pass
+    #"tests/randomfunctiongen" # pass
+    #"tests/supermesh" # pass
+    #"tests/unit" # pass
+    #"tests/test_tsfc_interface.py" # pass
     #"tests/test_0init.py" # pass
 
     "tests/demos" # fails, but that's fine
     "tests/equation_bcs" # fail: test_EquationBC_mixedpoisson_matrix
     "tests/extrusion" # mumps-related crashes (TODO: check coredump)
     "tests/multigrid" # not too many fails, very long (didn't wait)
-    "tests/output" # pass
+    #"tests/output" # pass
     "tests/regression"
     "tests/slate" # pass, except 1, see below
     "tests/slate/test_hybrid_poisson_sphere.py" # test_hybrid_conv_parallel: buffer overflow
-    "tests/vertexonly" # pass
+    #"tests/vertexonly" # pass, except 1, see below
+    #"tests/vertexonly/test_vertex_only_mesh_generation.py::test_generate_cell_midpoints_parallel[cube-nonredundant]"
   ];
 
   pythonImportsCheck = [ "firedrake" ];

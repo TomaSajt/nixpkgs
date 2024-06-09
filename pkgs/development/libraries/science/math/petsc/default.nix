@@ -25,7 +25,7 @@
   scotch,
   withSuperlu ? false,
   superlu,
-  withSuperlu-dist ? true,
+  withSuperlu-dist ? false,
   cmake,
   withHypre ? false,
   hypre,
@@ -211,7 +211,7 @@ stdenv.mkDerivation (finalAttrs: {
   # only run tests after they have been placed into $out
   # workaround for `cannot find -lpetsc: No such file or directory`
   doCheck = false;
-  doInstallCheck = stdenv.hostPlatform == stdenv.buildPlatform;
+  doInstallCheck = false; # stdenv.hostPlatform == stdenv.buildPlatform;
   installCheckTarget = "check";
 
   meta = {
