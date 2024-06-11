@@ -2,7 +2,8 @@
   lib,
   buildPythonPackage,
   fetchFromGitHub,
-  pytest,
+  setuptools,
+  pytestCheckHook,
   which,
   lrzsz,
 }:
@@ -10,24 +11,22 @@
 buildPythonPackage rec {
   pname = "xmodem";
   version = "0.4.7";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "tehmaze";
     repo = "xmodem";
     rev = "refs/tags/${version}";
-    sha256 = "sha256-kwPA/lYiv6IJSKGRuH13tBofZwp19vebwQniHK7A/i8=";
+    hash = "sha256-kwPA/lYiv6IJSKGRuH13tBofZwp19vebwQniHK7A/i8=";
   };
 
+  build-system = [ setuptools ];
+
   nativeCheckInputs = [
-    pytest
+    pytestCheckHook
     which
     lrzsz
   ];
-
-  checkPhase = ''
-    pytest
-  '';
 
   meta = with lib; {
     description = "Pure python implementation of the XMODEM protocol";
