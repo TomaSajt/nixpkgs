@@ -2,6 +2,7 @@
   lib,
   buildPythonPackage,
   fetchFromGitHub,
+  setuptools,
   requests,
   pytestCheckHook,
 }:
@@ -9,7 +10,7 @@
 buildPythonPackage rec {
   pname = "xboxapi";
   version = "2.0.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "mKeRix";
@@ -18,7 +19,9 @@ buildPythonPackage rec {
     sha256 = "10mhvallkwf5lw91hj5rv16sziqhhjq7sgcgr28sqqnlgjnyazdd";
   };
 
-  propagatedBuildInputs = [ requests ];
+  build-system = [ setuptools ];
+
+  dependencies = [ requests ];
 
   nativeCheckInputs = [ pytestCheckHook ];
 
