@@ -47,7 +47,7 @@ in
       # darwin has slightly different build steps
       broken = stdenv.isDarwin;
       changelog = "https://github.com/Inochi2D/inochi-creator/releases/tag/${src.rev}";
-      description = "An open source editor for the Inochi2D puppet format";
+      description = "Open source editor for the Inochi2D puppet format";
     };
   };
 
@@ -75,7 +75,7 @@ in
       # darwin has slightly different build steps, aarch fails to build because of some lua related error
       broken = stdenv.isDarwin || stdenv.isAarch64;
       changelog = "https://github.com/Inochi2D/inochi-session/releases/tag/${src.rev}";
-      description = "An application that allows streaming with Inochi2D puppets";
+      description = "Application that allows streaming with Inochi2D puppets";
     };
   };
 }
