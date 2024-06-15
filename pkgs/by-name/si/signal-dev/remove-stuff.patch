@@ -1,0 +1,40 @@
+From d5da67ff3f24bb506069f65b3e7b32c2f9475669 Mon Sep 17 00:00:00 2001
+From: skykanin <3789764+skykanin@users.noreply.github.com>
+Date: Sun, 5 May 2024 21:32:33 +0200
+Subject: [PATCH] remove-stuff
+
+---
+ package.json | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/package.json b/package.json
+index 20794b95a..ff9d6b56f 100644
+--- a/package.json
++++ b/package.json
+@@ -19,7 +19,7 @@
+     "postinstall": "yarn build:acknowledgments && patch-package && yarn electron:install-app-deps",
+     "postuninstall": "yarn build:acknowledgments",
+     "start": "electron .",
+-    "generate": "npm-run-all build-protobuf build:esbuild build:dns-fallback build:icu-types build:compact-locales sass get-expire-time copy-components",
++    "generate": "npm-run-all build-protobuf build:esbuild build:icu-types build:compact-locales sass get-expire-time copy-components",
+     "build-release": "yarn run build",
+     "sign-release": "node ts/updater/generateSignature.js",
+     "notarize": "echo 'No longer necessary'",
+@@ -377,7 +377,6 @@
+           "minOSVersion": "19.0.0"
+         }
+       },
+-      "sign": "./ts/scripts/sign-macos.js",
+       "singleArchFiles": "node_modules/@signalapp/{libsignal-client/prebuilds/**,ringrtc/build/**}",
+       "target": [
+         {
+@@ -405,7 +404,6 @@
+       "signingHashAlgorithms": [
+         "sha256"
+       ],
+-      "sign": "./ts/scripts/sign-windows.js",
+       "publisherName": "Signal Messenger, LLC",
+       "icon": "build/icons/win/icon.ico",
+       "publish": [
+-- 
+2.44.0
