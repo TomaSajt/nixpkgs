@@ -2,13 +2,13 @@
   fetchFromGitHub,
   fetchurl,
   fetchYarnDeps,
-  electron_29,
+  nodejs,
+  yarn,
+  electron_30,
   gcc,
   gnumake,
   makeWrapper,
   fixup-yarn-lock,
-  yarn,
-  nodejs,
   python3,
   lib,
   stdenv,
@@ -16,13 +16,13 @@
 }:
 
 let
-  electron = electron_29;
+  electron = electron_30;
 
   electronDist = electron + (if stdenv.isDarwin then "/Applications" else "/libexec/electron");
 
   ringrtc = fetchurl {
-    url = "https://build-artifacts.signal.org/libraries/ringrtc-desktop-build-v2.39.3.tar.gz";
-    hash = "sha256-6b7CUbEzyNkXZvwMxgyO7UjPbtncTvhPhV6odhqbWPU=";
+    url = "https://build-artifacts.signal.org/libraries/ringrtc-desktop-build-v2.42.0.tar.gz";
+    hash = "sha256-x86VmT7UzHe2uRLgUt60yGcdY+RGBcErV2pYcik/aH4=";
   };
 
   sqlcipher = fetchurl {
@@ -32,18 +32,18 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "signal-desktop";
-  version = "7.5.1";
+  version = "7.12.0";
 
   src = fetchFromGitHub {
     owner = "signalapp";
     repo = "Signal-Desktop";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-++XRYI36LbFDGuDJDU2qpy2NG5iOGyFxhy/gRxfHXbI=";
+    hash = "sha256-FRVlOxqnvYl5cujio9WOD9Vs6XiLBn3KGNWRNy5vSaQ=";
   };
 
   offlineCache = fetchYarnDeps {
     yarnLock = "${finalAttrs.src}/yarn.lock";
-    hash = "sha256-15Z4MyQk8ZeP7oZ1GWoHFhSGsW222t98O7AftcnexSA=";
+    hash = "sha256-1ILcQKlHSC62HNkOj9IOhGwkjpMqrReEoiJWkanej60=";
   };
 
   dangerOfflineCache = fetchYarnDeps {
@@ -53,7 +53,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   scOfflineCache = fetchYarnDeps {
     yarnLock = "${finalAttrs.src}/sticker-creator/yarn.lock";
-    hash = "sha256-K+8yLBrz1ianDopa5Aztg21udrHGqLB/aGMFx+tNzNw=";
+    hash = "sha256-SkrYuI6r6yHSGlNOj9PABO6xoxka2PHJYxI5EjZE7eQ=";
   };
 
   nativeBuildInputs = [
@@ -70,7 +70,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   postPatch = ''
     substituteInPlace package.json \
-      --replace-fail '"node": "20.9.0"' ""
+      --replace-fail '"node": "20.11.1"' ""
   '';
 
   env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
