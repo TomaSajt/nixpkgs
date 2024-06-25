@@ -10,8 +10,7 @@
 }:
 
 let
-  nodejs = nodejs_20;
-  buildNpmPackage' = buildNpmPackage.override { inherit nodejs; };
+  buildNpmPackage' = buildNpmPackage.override { nodejs = nodejs_20; };
 
   version = "1.19.0";
 
@@ -136,11 +135,18 @@ buildNpmPackage' {
   passthru = {
     inherit nodeDatachannelPrebuilt;
   };
+
   meta = {
     description = "Backend for HTTP Toolkit";
     homepage = "https://httptoolkit.com/";
     license = lib.licenses.agpl3Plus;
     mainProgram = "httptoolkit-server";
     maintainers = with lib.maintainers; [ tomasajt ];
+    platforms = [
+      "x86_64-linux"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "aarch64-darwin"
+    ];
   };
 }
