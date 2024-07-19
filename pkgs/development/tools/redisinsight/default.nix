@@ -24,18 +24,18 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "redisinsight";
-  version = "2.48.0";
+  version = "2.52.0";
 
   src = fetchFromGitHub {
     owner = "RedisInsight";
     repo = "RedisInsight";
     rev = finalAttrs.version;
-    hash = "sha256-ek0Fp8v6j+mZPK2cEuFNrBgInXdYIKBBUg0UD1I51Sg=";
+    hash = "sha256-t3ZD4ptqXdqjFju/Le2o0fWplbiIyCS+AqTnxl/M55Q=";
   };
 
   offlineCache = fetchYarnDeps {
     yarnLock = finalAttrs.src + "/yarn.lock";
-    hash = "sha256-ohtU1h6wrg7asXDxTt1Jlzx9GaS3zDrGQD9P9tgzCOE=";
+    hash = "sha256-FgUJR7hO9xf0bHKfnVPQdZSQBVJJm6RbQwyQO05w87U=";
   };
 
   feOfflineCache = fetchYarnDeps {
@@ -45,7 +45,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   apiOfflineCache = fetchYarnDeps {
     yarnLock = finalAttrs.src + "/redisinsight/api/yarn.lock";
-    hash = "sha256-4zbffuneTceMEyKb8atTXTFhTv0DhrsRMdepZWgoxMQ=";
+    hash = "sha256-Qy8rHGFdwS8ddVg5gn0RkR3C1GEbmTwNU4FXrLLFsps=";
   };
 
   nativeBuildInputs = [
