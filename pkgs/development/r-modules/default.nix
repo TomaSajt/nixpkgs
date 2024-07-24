@@ -1,4 +1,15 @@
-/* This file defines the composition for CRAN (R) packages. */
+/* This file defines the composition for R packages. */
+
+let
+  importJSON = f: builtins.fromJSON (builtins.readFile f);
+
+  biocPackagesGenerated =  importJSON ./bioc-packages.json;
+  biocAnnotationPackagesGenerated = importJSON ./bioc-annotation-packages.json;
+  biocExperimentPackagesGenerated = importJSON ./bioc-experiment-packages.json;
+  cranPackagesGenerated = importJSON ./cran-packages.json;
+
+  biocVersion = (importJSON ./bioc-info.json).version;
+in
 
 { R, pkgs, overrides }:
 
@@ -15,7 +26,7 @@ let
   #
   # some packages, e.g. cncaGUI, require X running while installation,
   # so that we use xvfb-run if requireX is true.
-  mkDerive = {mkHomepage, mkUrls, hydraPlatforms ? null}: args:
+  mkDerive = {mkHomepage, mkUrls, hydraPlatforms ? null}:
     let hydraPlatforms' = hydraPlatforms; in
       lib.makeOverridable ({
         name, version, sha256,
@@ -30,12 +41,12 @@ let
     name = "${name}-${version}";
     src = fetchurl {
       inherit sha256;
-      urls = mkUrls (args // { inherit name version; });
+      urls = mkUrls { inherit name version; };
     };
     inherit doCheck requireX;
     propagatedBuildInputs = depends;
     nativeBuildInputs = depends;
-    meta.homepage = mkHomepage (args // { inherit name; });
+    meta.homepage = mkHomepage { inherit name; };
     meta.platforms = platforms;
     meta.hydraPlatforms = hydraPlatforms;
     meta.broken = broken;
@@ -46,29 +57,29 @@ let
   # from the name, version, sha256, and optional per-package arguments above
   #
   deriveBioc = mkDerive {
-    mkHomepage = {name, biocVersion, ...}: "https://bioconductor.org/packages/${biocVersion}/bioc/html/${name}.html";
-    mkUrls = {name, version, biocVersion}: [
+    mkHomepage = {name}: "https://bioconductor.org/packages/${biocVersion}/bioc/html/${name}.html";
+    mkUrls = {name, version}: [
       "mirror://bioc/${biocVersion}/bioc/src/contrib/${name}_${version}.tar.gz"
       "mirror://bioc/${biocVersion}/bioc/src/contrib/Archive/${name}/${name}_${version}.tar.gz"
       "mirror://bioc/${biocVersion}/bioc/src/contrib/Archive/${name}_${version}.tar.gz"
     ];
   };
   deriveBiocAnn = mkDerive {
-    mkHomepage = {name, ...}: "http://www.bioconductor.org/packages/${name}.html";
-    mkUrls = {name, version, biocVersion}: [
+    mkHomepage = {name}: "http://www.bioconductor.org/packages/${name}.html";
+    mkUrls = {name, version}: [
       "mirror://bioc/${biocVersion}/data/annotation/src/contrib/${name}_${version}.tar.gz"
     ];
     hydraPlatforms = [];
   };
   deriveBiocExp = mkDerive {
-    mkHomepage = {name, ...}: "http://www.bioconductor.org/packages/${name}.html";
-    mkUrls = {name, version, biocVersion}: [
+    mkHomepage = {name}: "http://www.bioconductor.org/packages/${name}.html";
+    mkUrls = {name, version}: [
       "mirror://bioc/${biocVersion}/data/experiment/src/contrib/${name}_${version}.tar.gz"
     ];
     hydraPlatforms = [];
   };
   deriveCran = mkDerive {
-    mkHomepage = {name, ...}: "https://cran.r-project.org/web/packages/${name}/";
+    mkHomepage = {name}: "https://cran.r-project.org/web/packages/${name}/";
     mkUrls = {name, version}: [
       "mirror://cran/${name}_${version}.tar.gz"
       "mirror://cran/Archive/${name}/${name}_${version}.tar.gz"
@@ -287,10 +298,18 @@ let
   # packages in `_self` may depends on overridden packages.
   self = (defaultOverrides _self self) // overrides;
   _self = { inherit buildRPackage; } //
-          import ./bioc-packages.nix { inherit self; derive = deriveBioc; } //
-          import ./bioc-annotation-packages.nix { inherit self; derive = deriveBiocAnn; } //
-          import ./bioc-experiment-packages.nix { inherit self; derive = deriveBiocExp; } //
-          import ./cran-packages.nix { inherit self; derive = deriveCran; };
+          mkPackageSet deriveBioc biocPackagesGenerated //
+          mkPackageSet deriveBiocAnn biocAnnotationPackagesGenerated //
+          mkPackageSet deriveBiocExp biocExperimentPackagesGenerated //
+          mkPackageSet deriveCran cranPackagesGenerated;
+
+  # Takes in a generated JSON file's imported contents
+  # and transforms it by swapping each element of the depends array with the dependency's derivation
+  # and passing this new object to the provided derive function
+  mkPackageSet = derive: packagesJSON: lib.mapAttrs (
+    k: v: derive (v // { depends = lib.map (name: builtins.getAttr name self) v.depends; })
+  ) packagesJSON;
+
 
   # tweaks for the individual packages and "in self" follow
 
