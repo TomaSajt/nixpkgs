@@ -1,6 +1,7 @@
 {
   lib,
   fetchbzr,
+  fetchFromGitHub,
   mkDerivation,
   qmake,
   qtserialport,
@@ -35,7 +36,7 @@ let
           -e "s|^Icon=.*$|Icon=simulide|"
 
         # Note: older versions don't have REV_NO
-        sed -i SimulIDE.pro \
+        sed -i SimulIDE.pr* \
           -e "s|^VERSION = .*$|VERSION = ${version}|" \
           -e "s|^RELEASE = .*$|RELEASE = -${release}|" \
           -e "s|^REV_NO = .*$|REV_NO = ${rev}|" \
@@ -133,5 +134,32 @@ in
       sha256 = "sha256-qNBaGWl89Le9uC1VFK+xYhrLzIvOIWjkQbutnrAmZ2M=";
       inherit rev;
     };
+  };
+
+  simulide_1_2_0 = generic {
+    version = "1.2.0";
+    release = "unstable-2024-08-26";
+    rev = "??";
+    src = fetchFromGitHub {
+      owner = "Arcachofo";
+      repo = "SimulIDE-dev";
+      rev = "4e228a0a8bd5f3a130b8dafdb5c5df3d0c1d576c";
+      hash = "sha256-vrS/lvKM6tkbP3wBkLJ9vA2dGkXSsgivWY6d7ECYaLA=";
+    };
+  };
+
+  simulide_2_0_0 = generic {
+    version = "2.0.0";
+    release = "unstable-2024-08-27";
+    rev = "??";
+    src = fetchFromGitHub {
+      owner = "Arcachofo";
+      repo = "SimulIDE-2";
+      rev = "5d0fd850a3560b5db47457be56317f27fa00b562";
+      hash = "sha256-Lw8d3gUKtT73LY6m5BQleZt4BnZ0Z6+yrbRCTEJYLD8=";
+    };
+    installFiles = ''
+      cp simulide2 $out/bin/simulide
+    '';
   };
 }
