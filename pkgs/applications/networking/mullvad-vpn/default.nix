@@ -1,5 +1,6 @@
 {
   lib,
+  stdenv,
   buildNpmPackage,
   protobuf,
   protoc-gen-js,
@@ -14,13 +15,6 @@ buildNpmPackage rec {
   inherit (mullvad) src version;
 
   patches = [ ./electron-builder.patch ];
-
-  postPatch = ''
-    substituteInPlace gui/tasks/distribution.js \
-        --replace-fail 'function productVersion(extra_args) {' 'function productVersion(extra_args) { return "${version}";' \
-        --subst-var-by electron_dist ${electron.dist} \
-        --subst-var-by electron_version ${electron.version}
-  '';
 
   npmRoot = "gui";
 
@@ -42,10 +36,18 @@ buildNpmPackage rec {
     ln -s ${lib.getBin mullvad}/bin/* dist-assets/
     ln -s ${lib.getExe' protobuf "protoc"} gui/node_modules/grpc-tools/bin/protoc
     ln -s ${lib.getExe' grpc-tools "grpc_node_plugin"} gui/node_modules/grpc-tools/bin/grpc_node_plugin
+
+    cp -r ${electron.dist} electron-dist
+    chmod -R u+w electron-dist
+
+    substituteInPlace gui/tasks/distribution.js \
+        --replace-fail 'function productVersion(extra_args) {' 'function productVersion(extra_args) { return "${version}";' \
+        --subst-var-by electron_dist $(realpath electron-dist) \
+        --subst-var-by electron_version ${electron.version}
   '';
 
   preBuild = "pushd gui";
-  npmBuildScript = "pack:linux";
+  npmBuildScript = if stdenv.isLinux then "pack:linux" else "pack:mac";
   postBuild = "popd";
 
   installPhase = ''
