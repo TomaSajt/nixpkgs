@@ -1,0 +1,12 @@
+diff --git a/electron-app/package.json b/electron-app/package.json
+index 5872be3d..4113bae7 100644
+--- a/electron-app/package.json
++++ b/electron-app/package.json
+@@ -42,7 +42,6 @@
+     "yaml": "^1.10.2"
+   },
+   "scripts": {
+-    "prepare": "theia download:plugins",
+     "prebuild": "rimraf lib",
+     "build": "theia build",
+     "prebuild:dev": "yarn prebuild",

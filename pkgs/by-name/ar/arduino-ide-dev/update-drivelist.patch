@@ -1,0 +1,100 @@
+diff --git a/arduino-ide-extension/package.json b/arduino-ide-extension/package.json
+index 9c4dd44c..5585c8cf 100644
+--- a/arduino-ide-extension/package.json
++++ b/arduino-ide-extension/package.json
+@@ -67,7 +67,7 @@
+     "cross-fetch": "^3.1.5",
+     "dateformat": "^3.0.3",
+     "deepmerge": "^4.2.2",
+-    "drivelist": "^9.2.4",
++    "drivelist": "^11.0.0",
+     "electron-updater": "^4.6.5",
+     "fast-json-stable-stringify": "^2.1.0",
+     "fast-safe-stringify": "^2.1.1",
+diff --git a/yarn.lock b/yarn.lock
+index 9a1dda97..2e88fbe4 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -4260,7 +4260,7 @@ binary@~0.3.0:
+     buffers "~0.1.1"
+     chainsaw "~0.1.0"
+ 
+-bindings@^1.3.0:
++bindings@^1.3.0, bindings@^1.5.0:
+   version "1.5.0"
+   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
+   integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
+@@ -5834,7 +5834,17 @@ dotenv@~16.3.1:
+   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
+   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
+ 
+-drivelist@^9.0.2, drivelist@^9.2.4:
++drivelist@^11.0.0:
++  version "11.1.0"
++  resolved "https://registry.yarnpkg.com/drivelist/-/drivelist-11.1.0.tgz#39b17b78bf7d717e666ad57f006ffaf9ee344ac7"
++  integrity sha512-DT328SbKqB78y+HUeuazwj4+Enh5ormv9OgTIMB0/OP2VxKLFDOrKhejJxjP9ytmJok8W/nzR8gSWdpiaJi1XA==
++  dependencies:
++    bindings "^1.5.0"
++    debug "^4.3.4"
++    node-addon-api "^5.0.0"
++    prebuild-install "^7.1.1"
++
++drivelist@^9.0.2:
+   version "9.2.4"
+   resolved "https://registry.yarnpkg.com/drivelist/-/drivelist-9.2.4.tgz#f89d2233d86c9fcdbc0daacae257d7b27a658d20"
+   integrity sha512-F36yn+qXwiOGZM16FYPKcIRjC7qXDIA0SBZ0vvTEe01ai788Se8z78acYdgXC8NAsghiO+9c/GYXgU7E9hhUpg==
+@@ -9866,6 +9876,13 @@ node-abi@^2.21.0, node-abi@^2.7.0:
+   dependencies:
+     semver "^5.4.1"
+ 
++node-abi@^3.3.0:
++  version "3.51.0"
++  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.51.0.tgz#970bf595ef5a26a271307f8a4befa02823d4e87d"
++  integrity sha512-SQkEP4hmNWjlniS5zdnfIXTk1x7Ome85RDzHlTbBtzE97Gfwz/Ipw4v/Ryk20DWIy3yCNVLVlGKApCnmvYoJbA==
++  dependencies:
++    semver "^7.3.5"
++
+ node-addon-api@^1.6.3:
+   version "1.7.2"
+   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-1.7.2.tgz#3df30b95720b53c24e59948b49532b662444f54d"
+@@ -10937,6 +10954,24 @@ prebuild-install@^6.0.0:
+     tar-fs "^2.0.0"
+     tunnel-agent "^0.6.0"
+ 
++prebuild-install@^7.1.1:
++  version "7.1.1"
++  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.1.tgz#de97d5b34a70a0c81334fd24641f2a1702352e45"
++  integrity sha512-jAXscXWMcCK8GgCoHOfIr0ODh5ai8mj63L2nWrjuAgXE6tDyYGnx4/8o/rCgU+B4JSyZBKbeZqzhtwtC3ovxjw==
++  dependencies:
++    detect-libc "^2.0.0"
++    expand-template "^2.0.3"
++    github-from-package "0.0.0"
++    minimist "^1.2.3"
++    mkdirp-classic "^0.5.3"
++    napi-build-utils "^1.0.1"
++    node-abi "^3.3.0"
++    pump "^3.0.0"
++    rc "^1.2.7"
++    simple-get "^4.0.0"
++    tar-fs "^2.0.0"
++    tunnel-agent "^0.6.0"
++
+ prelude-ls@^1.2.1:
+   version "1.2.1"
+   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
+@@ -12092,6 +12127,15 @@ simple-get@^3.0.3:
+     once "^1.3.1"
+     simple-concat "^1.0.0"
+ 
++simple-get@^4.0.0:
++  version "4.0.1"
++  resolved "https://registry.yarnpkg.com/simple-get/-/simple-get-4.0.1.tgz#4a39db549287c979d352112fa03fd99fd6bc3543"
++  integrity sha512-brv7p5WgH0jmQJr1ZDDfKDOSeWWg+OVypG99A/5vYGPqJ6pxiaHLy8nxtFjBA7oMa01ebA9gfh1uMCFqOuXxvA==
++  dependencies:
++    decompress-response "^6.0.0"
++    once "^1.3.1"
++    simple-concat "^1.0.0"
++
+ simple-update-notifier@2.0.0:
+   version "2.0.0"
+   resolved "https://registry.yarnpkg.com/simple-update-notifier/-/simple-update-notifier-2.0.0.tgz#d70b92bdab7d6d90dfd73931195a30b6e3d7cebb"
