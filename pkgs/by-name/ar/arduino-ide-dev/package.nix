@@ -13,7 +13,6 @@
   nodejs,
   python311,
   electron,
-  protobuf,
   pkg-config,
   libX11,
   libxkbfile,
@@ -21,6 +20,9 @@
   grpc-tools,
   linkFarm,
   ripgrep,
+
+  protobuf,
+  protoc-gen-js,
 }:
 let
   version = "2.3.2";
@@ -86,6 +88,10 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
     nodejs.pkgs.node-pre-gyp
     makeWrapper
     pkg-config
+
+    protobuf
+    protoc-gen-js
+
   ];
 
   buildInputs = [
@@ -97,7 +103,7 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
 
   postPatch = ''
     ln -s ${pluginsDir} electron-app/plugins
-    substituteInPlace package.json --replace '"prepare":' '"_prepare":'
+    substituteInPlace package.json --replace-fail '"prepare":' '"_prepare":'
   '';
 
   buildPhase = ''
@@ -106,32 +112,29 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
     fixup-yarn-lock yarn.lock
     yarn config --offline set yarn-offline-mirror $yarnOfflineCache
 
-    mkdir -p $HOME/.node-gyp/${nodejs.version}
-    echo 9 > $HOME/.node-gyp/${nodejs.version}/installVersion
-    ln -sfv ${nodejs}/include $HOME/.node-gyp/${nodejs.version}
     export npm_config_nodedir=${nodejs}
 
     export PATH=$PWD/node_modules/.bin:$PATH
-    yarn install --offline --frozen-lockfile --ignore-scripts  --ignore-engines --no-progress
+    yarn install --offline --frozen-lockfile --ignore-scripts --ignore-engines --no-progress
     patchShebangs node_modules
 
-    cp -r node_modules/grpc-tools temp-grpc-tools
-
-    yarn install --offline --frozen-lockfile --ignore-engines --no-progress
-    patchShebangs node_modules
-
-    cp -r temp-grpc-tools node_modules/grpc-tools
     ln -s ${protobuf}/bin/protoc node_modules/grpc-tools/bin/protoc
     ln -s ${grpc-tools}/bin/grpc_node_plugin node_modules/grpc-tools/bin/grpc_node_plugin
-
+    substituteInPlace node_modules/grpc-tools/package.json --replace-fail '"install":' '"_install":'
     mkdir node_modules/@vscode/ripgrep/bin
     ln -s ${ripgrep}/bin/rg node_modules/@vscode/ripgrep/bin/rg
+    substituteInPlace node_modules/@vscode/ripgrep/package.json --replace-fail '"postinstall":' '"_postinstall":'
+    mkdir -p node_modules/protoc/protoc/bin
+    ln -s ${protobuf}/bin/protoc node_modules/protoc/protoc/bin/protoc
+    substituteInPlace node_modules/protoc/package.json --replace-fail '"postinstall":' '"_postinstall":'
 
     pushd node_modules/@theia/ffmpeg
-    substituteInPlace lib/ffmpeg.js --replace "path.resolve(require.resolve('electron/package.json'), '..', 'dist')" "'${electron}/libexec/electron'" # bruh moment'
-    substituteInPlace lib/replace-ffmpeg.js --replace "let shouldDownload = true;" "return;"
-    substituteInPlace lib/check-ffmpeg.js --replace "checkFfmpeg(options = {}) {" "checkFfmpeg(options = {}) { return;"
+    substituteInPlace lib/ffmpeg.js --replace-fail "path.resolve(require.resolve('electron/package.json'), '..', 'dist')" "'${electron}/libexec/electron'" # bruh moment'
+    substituteInPlace lib/replace-ffmpeg.js --replace-fail "let shouldDownload = true;" "return;"
+    substituteInPlace lib/check-ffmpeg.js --replace-fail "checkFfmpeg(options = {}) {" "checkFfmpeg(options = {}) { return;"
     popd
+
+    npm rebuild --verbose
 
     yarn _prepare
 
