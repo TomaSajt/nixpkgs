@@ -1,44 +1,36 @@
-{ lib
-, gcc10Stdenv
-, fetchFromGitHub
-, fetchYarnDeps
-, substituteAll
-, makeWrapper
-, callPackage
+{
+  lib,
+  gcc10Stdenv,
+  fetchFromGitHub,
+  fetchYarnDeps,
+  substituteAll,
+  makeWrapper,
+  callPackage,
 
-, prefetch-yarn-deps
-, yarn
-, nodejs
-, python3
-, electron-bin
-, protobuf
-, pkg-config
-, libX11
-, libxkbfile
-, libsecret
-, grpc-tools
-, linkFarm
-, ripgrep
-, applyPatches
+  prefetch-yarn-deps,
+  fixup-yarn-lock,
+  yarn,
+  nodejs,
+  python311,
+  electron,
+  protobuf,
+  pkg-config,
+  libX11,
+  libxkbfile,
+  libsecret,
+  grpc-tools,
+  linkFarm,
+  ripgrep,
 }:
 let
-  electron = electron-bin;
-  version = "unstable-2024-01-22";
+  version = "2.3.2";
 
-  orig_src = fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "arduino";
     repo = "arduino-ide";
-    rev = "0e7b0c94863cd948a1f77f5090e0affb3fe6804f";
-    hash = "sha256-LrwwMvxwFxLQ6ncOqjo3qt6kyr/Ettp8Jk7cwFn6RYw=";
+    rev = "refs/tags/${version}";
+    hash = "sha256-XB2MeBv1BTpG7B6fTHCsl0xY5PN06bBgvRR1K61AB8Y=";
   };
-
-  src = applyPatches {
-    src = orig_src;
-    # Fixes the "undefined symbol" error with drivelist
-    # Sadly, I couldn't get the other ones to work
-    patches = [ ./update-drivelist.patch ];
-  };
-
 
   examples_src = fetchFromGitHub {
     owner = "arduino";
@@ -48,7 +40,9 @@ let
   };
 
   inherit (callPackage ./plugins.nix { }) theiaPlugins;
-  pluginsDir = linkFarm "arduino-ide-plugins-dir" (lib.mapAttrsToList (name: path: { inherit name path; }) theiaPlugins);
+  pluginsDir = linkFarm "arduino-ide-plugins-dir" (
+    lib.mapAttrsToList (name: path: { inherit name path; }) theiaPlugins
+  );
 in
 
 gcc10Stdenv.mkDerivation (finalAttrs: {
@@ -58,10 +52,10 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
   patches = [
     (substituteAll {
       src = ./electron.patch;
-      electron_dist = "${electron}/libexec/electron";
+      electron_dist = electron.dist;
       electron_version = electron.version;
       build_date = "2024-01-22T00:00:00.000Z";
-      version = "2.2.2-${version}";
+      inherit version;
     })
     (substituteAll {
       src = ./dont-download-ide-extension-binaries.patch;
@@ -72,7 +66,7 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
 
   yarnOfflineCache = fetchYarnDeps {
     yarnLock = "${src}/yarn.lock";
-    hash = "sha256-F8dCyvPoOpqjxe7DFHQkxnC3xFIyItk0r7vkk4xv48I=";
+    hash = "sha256-RdgyL+79Tc++pTga31lC6nG+aW3BihJmMemF33pdbv4=";
   };
 
   env = {
@@ -82,8 +76,10 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     prefetch-yarn-deps
+
+    fixup-yarn-lock
     yarn
-    python3
+    python311
     nodejs
     nodejs.pkgs.node-gyp
     nodejs.pkgs.node-gyp-build
@@ -116,7 +112,7 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
     export npm_config_nodedir=${nodejs}
 
     export PATH=$PWD/node_modules/.bin:$PATH
-    yarn install --offline --frozen-lockfile --ignore-scripts --ignore-engines --no-progress
+    yarn install --offline --frozen-lockfile --ignore-scripts  --ignore-engines --no-progress
     patchShebangs node_modules
 
     cp -r node_modules/grpc-tools temp-grpc-tools
@@ -125,7 +121,7 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
     patchShebangs node_modules
 
     cp -r temp-grpc-tools node_modules/grpc-tools
-    ln -s ${grpc-tools}/bin/protoc node_modules/grpc-tools/bin/protoc
+    ln -s ${protobuf}/bin/protoc node_modules/grpc-tools/bin/protoc
     ln -s ${grpc-tools}/bin/grpc_node_plugin node_modules/grpc-tools/bin/grpc_node_plugin
 
     mkdir node_modules/@vscode/ripgrep/bin
@@ -169,6 +165,8 @@ gcc10Stdenv.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru = { inherit theiaPlugins pluginsDir; };
+  passthru = {
+    inherit theiaPlugins pluginsDir;
+  };
 
 })
