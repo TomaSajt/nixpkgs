@@ -84,11 +84,11 @@
       "dependency": "transitive",
       "description": {
         "name": "coverage",
-        "sha256": "8acabb8306b57a409bf4c83522065672ee13179297a6bb0cb9ead73948df7c76",
+        "sha256": "576aaab8b1abdd452e0f656c3e73da9ead9d7880e15bdc494189d9c1a1baf0db",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.7.2"
+      "version": "1.9.0"
     },
     "crypto": {
       "dependency": "direct main",
@@ -264,11 +264,11 @@
       "dependency": "transitive",
       "description": {
         "name": "meta",
-        "sha256": "25dfcaf170a0190f47ca6355bdd4552cb8924b430512ff0cafb8db9bd41fe33b",
+        "sha256": "bdb68674043280c3428e9ec998512fb681678676b3c54e773629ffe74419f8c7",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.14.0"
+      "version": "1.15.0"
     },
     "mime": {
       "dependency": "transitive",
@@ -374,11 +374,11 @@
       "dependency": "transitive",
       "description": {
         "name": "shelf_web_socket",
-        "sha256": "9ca081be41c60190ebcb4766b2486a7d50261db7bd0f5d9615f2d653637a84c1",
+        "sha256": "073c147238594ecd0d193f3456a5fe91c4b0abbcc68bf5cd95b36c4e194ac611",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.0.4"
+      "version": "2.0.0"
     },
     "source_map_stack_trace": {
       "dependency": "transitive",
@@ -434,11 +434,11 @@
       "dependency": "transitive",
       "description": {
         "name": "string_scanner",
-        "sha256": "556692adab6cfa87322a115640c11f13cb77b3f076ddcc5d6ae3c20242bedcde",
+        "sha256": "688af5ed3402a4bde5b3a6c15fd768dbf2621a614950b17f04626c431ab3c4c3",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.2.0"
+      "version": "1.3.0"
     },
     "term_glyph": {
       "dependency": "transitive",
@@ -454,31 +454,31 @@
       "dependency": "direct dev",
       "description": {
         "name": "test",
-        "sha256": "d72b538180efcf8413cd2e4e6fcc7ae99c7712e0909eb9223f9da6e6d0ef715f",
+        "sha256": "713a8789d62f3233c46b4a90b174737b2c04cb6ae4500f2aa8b1be8f03f5e67f",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.25.4"
+      "version": "1.25.8"
     },
     "test_api": {
       "dependency": "transitive",
       "description": {
         "name": "test_api",
-        "sha256": "2419f20b0c8677b2d67c8ac4d1ac7372d862dc6c460cdbb052b40155408cd794",
+        "sha256": "664d3a9a64782fcdeb83ce9c6b39e78fd2971d4e37827b9b06c3aa1edc5e760c",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.7.1"
+      "version": "0.7.3"
     },
     "test_core": {
       "dependency": "transitive",
       "description": {
         "name": "test_core",
-        "sha256": "4d070a6bc36c1c4e89f20d353bfd71dc30cdf2bd0e14349090af360a029ab292",
+        "sha256": "12391302411737c176b0b5d6491f466b0dd56d4763e347b6714efbaa74d7953d",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.6.2"
+      "version": "0.6.5"
     },
     "toml": {
       "dependency": "direct main",
@@ -514,11 +514,11 @@
       "dependency": "transitive",
       "description": {
         "name": "vm_service",
-        "sha256": "3923c89304b715fb1eb6423f017651664a03bf5f4b29983627c4da791f74a4ec",
+        "sha256": "f652077d0bdf60abe4c1f6377448e8655008eef28f128bc023f7b5e8dfeb48fc",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "14.2.1"
+      "version": "14.2.4"
     },
     "watcher": {
       "dependency": "transitive",
@@ -534,21 +534,31 @@
       "dependency": "transitive",
       "description": {
         "name": "web",
-        "sha256": "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27",
+        "sha256": "d43c1d6b787bf0afad444700ae7f4db8827f701bc61c255ac8d328c6f4d52062",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.5.1"
+      "version": "1.0.0"
+    },
+    "web_socket": {
+      "dependency": "transitive",
+      "description": {
+        "name": "web_socket",
+        "sha256": "3c12d96c0c9a4eec095246debcea7b86c0324f22df69893d538fcc6f1b8cce83",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.1.6"
     },
     "web_socket_channel": {
       "dependency": "transitive",
       "description": {
         "name": "web_socket_channel",
-        "sha256": "58c6666b342a38816b2e7e50ed0f1e261959630becd4c879c4f26bfa14aa5a42",
+        "sha256": "9f187088ed104edd8662ca07af4b124465893caf063ba29758f97af57e61da8f",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "2.4.5"
+      "version": "3.0.1"
     },
     "webkit_inspection_protocol": {
       "dependency": "transitive",
@@ -572,6 +582,6 @@
     }
   },
   "sdks": {
-    "dart": ">=3.3.0 <4.0.0"
+    "dart": ">=3.4.0 <4.0.0"
   }
 }
