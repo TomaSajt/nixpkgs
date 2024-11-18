@@ -3,6 +3,7 @@
   stdenv,
   fetchurl,
   fetchFromGitHub,
+  replaceVars,
   makeDesktopItem,
   copyDesktopItems,
   cmake,
@@ -128,36 +129,32 @@ stdenv.mkDerivation rec {
 
   # Hack RStudio to only use the input R and provided libclang.
   patches = [
-    ./r-location.patch
-    ./clang-location.patch
-    ./use-system-node.patch
+    (replaceVars ./r-location.patch {
+      R = lib.getBin R;
+    })
+    (replaceVars ./clang-location.patch {
+      libclang = lib.getLib llvmPackages.libclang;
+      "libclang.so" = "${lib.getLib llvmPackages.libclang}/lib/libclang.so";
+    })
+    (replaceVars ./use-system-node.patch {
+      node = lib.getBin nodejs;
+    })
     ./fix-resources-path.patch
-    ./pandoc-nix-path.patch
-    ./use-system-quarto.patch
+    # were these even correct to begin with?
+    (replaceVars ./pandoc-nix-path.patch {
+      pandoc = pandoc;
+      quarto = quarto;
+    })
+    (replaceVars ./use-system-quarto.patch {
+      pandoc = "${pandoc}/bin";
+      quarto = quarto;
+    })
     ./ignore-etc-os-release.patch
   ];
 
   postPatch = ''
-    substituteInPlace src/cpp/core/r_util/REnvironmentPosix.cpp --replace-fail '@R@' ${R}
-
     substituteInPlace src/gwt/build.xml \
-      --replace-fail '@node@' ${nodejs} \
       --replace-fail './lib/quarto' ${quartoSrc}
-
-    substituteInPlace src/cpp/conf/rsession-dev.conf \
-      --replace-fail '@node@' ${nodejs}
-
-    substituteInPlace src/cpp/core/libclang/LibClang.cpp \
-      --replace-fail '@libclang@' ${lib.getLib llvmPackages.libclang} \
-      --replace-fail '@libclang.so@' ${lib.getLib llvmPackages.libclang}/lib/libclang.so
-
-    substituteInPlace src/cpp/session/CMakeLists.txt \
-      --replace-fail '@pandoc@' ${pandoc} \
-      --replace-fail '@quarto@' ${quarto}
-
-    substituteInPlace src/cpp/session/include/session/SessionConstants.hpp \
-      --replace-fail '@pandoc@' ${pandoc}/bin \
-      --replace-fail '@quarto@' ${quarto}
   '';
 
   hunspellDictionaries = lib.filter lib.isDerivation (lib.unique (lib.attrValues hunspellDicts));
