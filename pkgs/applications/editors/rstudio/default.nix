@@ -24,7 +24,7 @@
   yaml-cpp,
   soci,
   postgresql,
-  nodejs,
+  nodejs_20,
   server ? false, # build server version
   sqlite,
   pam,
@@ -32,6 +32,8 @@
 }:
 
 let
+  nodejs = nodejs_20;
+
   mathJaxSrc = fetchurl {
     url = "https://s3.amazonaws.com/rstudio-buildtools/mathjax-27.zip";
     hash = "sha256-xWy6psTOA8H8uusrXqPDEtL7diajYCVHcMvLiPsgQXY=";
@@ -40,8 +42,8 @@ let
   rsconnectSrc = fetchFromGitHub {
     owner = "rstudio";
     repo = "rsconnect";
-    rev = "v1.2.2";
-    hash = "sha256-wvM9Bm7Nb6yU9z0o+uF5lB2kdgjOW5wZSk6y48NPF2U=";
+    rev = "v1.3.2";
+    hash = "sha256-Fz0rBQVAomP6pJ/tY3lR4j7W7scMJDM2JaNob1NK6NU=";
   };
 
   # Ideally, rev should match the rstudio release name.
@@ -49,14 +51,14 @@ let
   quartoSrc = fetchFromGitHub {
     owner = "quarto-dev";
     repo = "quarto";
-    rev = "bb264a572c6331d46abcf087748c021d815c55d7";
-    hash = "sha256-lZnZvioztbBWWa6H177X6rRrrgACx2gMjVFDgNup93g=";
+    rev = "release/rstudio-cranberry-hibiscus";
+    hash = "sha256-Tv9MPv6zRd94YgACn+lN48V2n8lNx+AdCJg+RUgrt7o=";
   };
 
 in
 stdenv.mkDerivation rec {
   pname = "RStudio";
-  version = "2024.04.2+764";
+  version = "2024.09.1+394";
 
   RSTUDIO_VERSION_MAJOR = lib.versions.major version;
   RSTUDIO_VERSION_MINOR = lib.versions.minor version;
@@ -67,7 +69,7 @@ stdenv.mkDerivation rec {
     owner = "rstudio";
     repo = "rstudio";
     rev = "v" + version;
-    hash = "sha256-j258eW1MYQrB6kkpjyolXdNuwQ3zSWv9so4q0QLsZuw=";
+    hash = "sha256-sHP9KKGlFJ4omgV29cf5rCdMs4SJxk9G186ZMSYBUPc=";
   };
 
   nativeBuildInputs =
@@ -176,10 +178,11 @@ stdenv.mkDerivation rec {
 
     unzip -q ${mathJaxSrc} -d dependencies/mathjax-27
 
-    # As of Chocolate Cosmos, node 18.20.3 is used for runtime
-    # 18.18.2 is still used for build
-    # see https://github.com/rstudio/rstudio/commit/facb5cf1ab38fe77813aaf36590804e4f865d780
-    mkdir -p dependencies/common/node/18.20.3
+    # As of Cranberry Hibiscus, node 20.15.1 is used for runtime
+    # node_20 can be used for build.
+    # And now the folder name needs the suffix -patched. More info:
+    # https://github.com/rstudio/rstudio/commit/bde8d20a9426c45ced6fde2557d75fb94ab5724e
+    mkdir -p dependencies/common/node/20.15.1-patched
 
     mkdir -p dependencies/pandoc/${pandoc.version}
     cp ${pandoc}/bin/pandoc dependencies/pandoc/${pandoc.version}/pandoc
@@ -189,25 +192,24 @@ stdenv.mkDerivation rec {
   '';
 
   postInstall = ''
-    mkdir -p $out/bin $out/share
+    mkdir -p $out/bin
 
     ${lib.optionalString (!server) ''
-      mkdir -p $out/share/icons/hicolor/48x48/apps
-      ln $out/lib/rstudio/rstudio.png $out/share/icons/hicolor/48x48/apps
+      #install -Dm644 ../src/node/desktop/resources/freedesktop/icons/48x48/rstudio.png $out/share/icons/hicolor/48x48/apps/rstudio.png
     ''}
 
     ${lib.optionalString server ''
-      ln -s $out/lib/rstudio/bin/{crash-handler-proxy,postback,r-ldpath,rpostback,rserver,rserver-pam,rsession,rstudio-server} $out/bin
+      #ln -s $out/lib/rstudio/bin/{crash-handler-proxy,postback,r-ldpath,rpostback,rserver,rserver-pam,rsession,rstudio-server} $out/bin
     ''}
     ${lib.optionalString (!server) ''
-      ln -s $out/lib/rstudio/bin/{diagnostics,rpostback,rstudio} $out/bin
+      #ln -s $out/lib/rstudio/bin/{diagnostics,rpostback,rstudio} $out/bin
     ''}
 
-    for f in .gitignore .Rbuildignore LICENSE README; do
-      find . -name $f -delete
-    done
+    #for f in .gitignore .Rbuildignore LICENSE README; do
+      #find . -name $f -delete
+    #done
 
-    rm -r $out/lib/rstudio/{INSTALL,COPYING,NOTICE,README.md,SOURCE,VERSION}
+    #rm -r $out/lib/rstudio/{INSTALL,COPYING,NOTICE,README.md,SOURCE,VERSION}
   '';
 
   qtWrapperArgs = lib.optionals (!server) [
