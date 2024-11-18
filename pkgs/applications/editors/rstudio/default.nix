@@ -113,17 +113,17 @@ stdenv.mkDerivation rec {
 
   cmakeFlags =
     [
-      "-DRSTUDIO_TARGET=${if server then "Server" else "Desktop"}"
-      "-DRSTUDIO_USE_SYSTEM_SOCI=ON"
-      "-DRSTUDIO_USE_SYSTEM_BOOST=ON"
-      "-DRSTUDIO_USE_SYSTEM_YAML_CPP=ON"
-      "-DRSTUDIO_DISABLE_CHECK_FOR_UPDATES=ON"
-      "-DQUARTO_ENABLED=TRUE"
-      "-DPANDOC_VERSION=${pandoc.version}"
-      "-DCMAKE_INSTALL_PREFIX=${placeholder "out"}/lib/rstudio"
+      (lib.cmakeFeature "RSTUDIO_TARGET" (if server then "Server" else "Desktop"))
+      (lib.cmakeBool "RSTUDIO_USE_SYSTEM_SOCI" true)
+      (lib.cmakeBool "RSTUDIO_USE_SYSTEM_BOOST" true)
+      (lib.cmakeBool "RSTUDIO_USE_SYSTEM_YAML_CPP" true)
+      (lib.cmakeBool "RSTUDIO_DISABLE_CHECK_FOR_UPDATES" true)
+      (lib.cmakeBool "QUARTO_ENABLED" true)
+      (lib.cmakeFeature "PANDOC_VERSION" pandoc.version)
+      (lib.cmakeFeature "CMAKE_INSTALL_PREFIX" "${placeholder "out"}/lib/rstudio")
     ]
     ++ lib.optionals (!server) [
-      "-DQT_QMAKE_EXECUTABLE=${libsForQt5.qmake}/bin/qmake"
+      (lib.cmakeFeature "QT_QMAKE_EXECUTABLE" "${libsForQt5.qmake}/bin/qmake")
     ];
 
   # Hack RStudio to only use the input R and provided libclang.
