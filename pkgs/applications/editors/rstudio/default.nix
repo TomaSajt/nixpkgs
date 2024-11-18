@@ -253,17 +253,6 @@ in
         install -Dm644 $src/src/node/desktop/resources/freedesktop/icons/48x48/rstudio.png $out/share/icons/hicolor/48x48/apps/rstudio.png
       ''}
 
-      for f in {${if server
-        then "crash-handler-proxy,postback,r-ldpath,rpostback,rserver,rserver-pam,rsession,rstudio-server"
-        else "diagnostics,rpostback,rstudio"}}; do
-        ln $out/lib/rstudio/bin/$f $out/bin
-      done
-
-      for f in .gitignore .Rbuildignore LICENSE README; do
-        find . -name $f -delete
-      done
-
-      rm -r $out/lib/rstudio/{INSTALL,COPYING,NOTICE,README.md,SOURCE,VERSION}
     '';
 
     meta = {
