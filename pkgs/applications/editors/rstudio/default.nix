@@ -33,6 +33,11 @@
 , sqlite
 , pam
 , nixosTests
+, npmHooks
+, fetchNpmDeps
+, electron
+, zip
+, git
 }:
 
 let
@@ -86,9 +91,14 @@ in
       jdk
       pandoc
       nodejs_20
+      (nodejs_20.python.withPackages (ps: [ ps.setuptools ]))
+      zip
+      git
+      npmHooks.npmConfigHook
     ] ++ lib.optionals (!server) [
       copyDesktopItems
     ];
+
 
     buildInputs = [
       boost183
@@ -111,8 +121,21 @@ in
       qtwebchannel
     ]);
 
+    env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+
+    npmRoot = "src/node/desktop";
+
+    npmDeps = fetchNpmDeps {
+      name = "${pname}-${version}-npm-deps";
+      inherit src;
+      sourceRoot = "${src.name}/${npmRoot}";
+      hash = "sha256-XmmurwYXOb1H1ihNGpPPwqrQvbb1Gc/tG9eVywZixh8=";
+    };
+
     cmakeFlags = [
-      "-DRSTUDIO_TARGET=${if server then "Server" else "Desktop"}"
+      "-DNODEJS=${lib.getExe' nodejs_20 "node"}"
+      "-DNPM=${lib.getExe' nodejs_20 "npm"}"
+      "-DRSTUDIO_TARGET=${if server then "Server" else "Electron"}"
       "-DRSTUDIO_USE_SYSTEM_SOCI=ON"
       "-DRSTUDIO_USE_SYSTEM_BOOST=ON"
       "-DRSTUDIO_USE_SYSTEM_YAML_CPP=ON"
@@ -138,6 +161,9 @@ in
     ];
 
     postPatch = ''
+      substituteInPlace src/node/desktop/CMakeLists.txt \
+        --replace-fail 'include("''${CMAKE_CURRENT_LIST_DIR}/../CMakeNodeTools.txt")' ""
+
       substituteInPlace src/cpp/core/r_util/REnvironmentPosix.cpp --replace-fail '@R@' ${R}
 
       substituteInPlace src/gwt/build.xml \
@@ -162,6 +188,29 @@ in
 
       substituteInPlace package/linux/CMakeLists.txt \
         --replace-fail 'elseif(RSTUDIO_ELECTRON)' 'else()'
+    '';
+
+    postConfigure = ''
+      pushd ../$npmRoot
+
+      substituteInPlace package.json \
+        --replace-fail "npm ci && " ""
+
+      # electron files need to be writable on Darwin
+      cp -r ${electron.dist} electron-dist
+      chmod -R u+w electron-dist
+
+      pushd electron-dist
+      zip -0Xqr ../electron.zip .
+      popd
+
+      rm -r electron-dist
+
+      # force @electron/packager to use our electron instead of downloading it, even if it is a different version
+      substituteInPlace node_modules/@electron/packager/src/index.js \
+        --replace-fail 'await this.getElectronZipPath(downloadOpts)' '"electron.zip"'
+
+      popd
     '';
 
     hunspellDictionaries = lib.filter lib.isDerivation (lib.unique (lib.attrValues hunspellDicts));
