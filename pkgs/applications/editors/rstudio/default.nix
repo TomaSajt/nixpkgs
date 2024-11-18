@@ -196,14 +196,12 @@ stdenv.mkDerivation rec {
       ln $out/lib/rstudio/rstudio.png $out/share/icons/hicolor/48x48/apps
     ''}
 
-    for f in {${
-      if server then
-        "crash-handler-proxy,postback,r-ldpath,rpostback,rserver,rserver-pam,rsession,rstudio-server"
-      else
-        "diagnostics,rpostback,rstudio"
-    }}; do
-      ln -s $out/lib/rstudio/bin/$f $out/bin
-    done
+    ${lib.optionalString server ''
+      ln -s $out/lib/rstudio/bin/{crash-handler-proxy,postback,r-ldpath,rpostback,rserver,rserver-pam,rsession,rstudio-server} $out/bin
+    ''}
+    ${lib.optionalString (!server) ''
+      ln -s $out/lib/rstudio/bin/{diagnostics,rpostback,rstudio} $out/bin
+    ''}
 
     for f in .gitignore .Rbuildignore LICENSE README; do
       find . -name $f -delete
