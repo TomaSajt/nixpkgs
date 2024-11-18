@@ -167,25 +167,25 @@ stdenv.mkDerivation rec {
   dictionaries = largeDicts ++ otherDicts;
 
   preConfigure = ''
-     mkdir dependencies/dictionaries
-     for dict in ${builtins.concatStringsSep " " dictionaries}; do
-       for i in "$dict/share/hunspell/"*; do
-         ln -s $i dependencies/dictionaries/
-       done
-     done
+    mkdir dependencies/dictionaries
+    for dict in ${builtins.concatStringsSep " " dictionaries}; do
+      for i in "$dict/share/hunspell/"*; do
+        ln -s $i dependencies/dictionaries/
+      done
+    done
 
-     unzip -q ${mathJaxSrc} -d dependencies/mathjax-27
+    unzip -q ${mathJaxSrc} -d dependencies/mathjax-27
 
     # As of Chocolate Cosmos, node 18.20.3 is used for runtime
     # 18.18.2 is still used for build
     # see https://github.com/rstudio/rstudio/commit/facb5cf1ab38fe77813aaf36590804e4f865d780
     mkdir -p dependencies/common/node/18.20.3
 
-     mkdir -p dependencies/pandoc/${pandoc.version}
-     cp ${pandoc}/bin/pandoc dependencies/pandoc/${pandoc.version}/pandoc
+    mkdir -p dependencies/pandoc/${pandoc.version}
+    cp ${pandoc}/bin/pandoc dependencies/pandoc/${pandoc.version}/pandoc
 
-     cp -r ${rsconnectSrc} dependencies/rsconnect
-     ( cd dependencies && ${R}/bin/R CMD build -d --no-build-vignettes rsconnect )
+    cp -r ${rsconnectSrc} dependencies/rsconnect
+    ( cd dependencies && ${R}/bin/R CMD build -d --no-build-vignettes rsconnect )
   '';
 
   postInstall = ''
