@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchzip,
+  fetchurl,
+  unzip,
   autoPatchelfHook,
 }:
 
@@ -9,19 +10,19 @@ let
   platformInfoTable = {
     "x86_64-linux" = {
       id = "linux-x64";
-      hash = "sha256-/PD5e0bWgnIsIrvyOypoJw30VkgbOFWV1NJpPS2G0WM=";
+      hash = "sha256-TlPwa3aPgXfRfUGpWkkcJfL5ApXmEtahs8DllVABUZQ=";
     };
     "aarch64-linux" = {
       id = "linux-arm64";
-      hash = "sha256-zfiorXZyIISZPXPwmcdYeHceDmQXkUhsvTkNZScg648=";
+      hash = "sha256-BPveb87u/RODk0ZI0EbMTLwV83CBCp7/V6hLw9PKbCw=";
     };
     "x86_64-darwin" = {
       id = "osx-x64";
-      hash = "sha256-cdNdV1fVPkz6B7vtKZiPsLQGqnIiDtYa9KTcwSkjdJg=";
+      hash = "sha256-Sh698qMdhMm3abUQye6bZ0V/ixPTn6lBvoRXog9+GBU=";
     };
     "aarch64-darwin" = {
       id = "osx-arm64";
-      hash = "sha256-Z1dq2t/HBQulbPF23ZCihOrcZHMpTXEQ6yXKORZaFPk=";
+      hash = "sha256-DgW8YAyoBW9RxHsuHdzaNMVf8WwvSEt1JeJ5Tbkm+6g=";
     };
   };
 
@@ -31,15 +32,15 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "voicevox-core";
-  version = "0.15.4";
+  version = "0.15.5";
 
   # Note: Only the prebuilt binaries are able to decrypt the encrypted voice models
-  src = fetchzip {
+  src = fetchurl {
     url = "https://github.com/VOICEVOX/voicevox_core/releases/download/${finalAttrs.version}/voicevox_core-${platformInfo.id}-cpu-${finalAttrs.version}.zip";
     inherit (platformInfo) hash;
   };
 
-  nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [ autoPatchelfHook ];
+  nativeBuildInputs = [ unzip ] ++ lib.optionals stdenv.hostPlatform.isLinux [ autoPatchelfHook ];
 
   buildInputs = [ stdenv.cc.cc.lib ];
 
@@ -67,7 +68,10 @@ stdenv.mkDerivation (finalAttrs: {
         redistributable = true;
       })
     ];
-    maintainers = with lib.maintainers; [ tomasajt ];
+    maintainers = with lib.maintainers; [
+      tomasajt
+      eljamm
+    ];
     platforms = lib.attrNames platformInfoTable;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
   };
