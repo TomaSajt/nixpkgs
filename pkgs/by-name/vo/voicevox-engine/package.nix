@@ -8,14 +8,14 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "voicevox-engine";
-  version = "0.20.0";
+  version = "0.22.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "VOICEVOX";
     repo = "voicevox_engine";
-    rev = "refs/tags/${version}";
-    hash = "sha256-Gib5R7oleg+XXyu2V65EqrflQ1oiAR7a09a0MFhSITc=";
+    tag = version;
+    hash = "sha256-0MXqEoMv5Fda3Uuv58XWGsvXKRN2zeEHLvFkwagKado=";
   };
 
   patches = [
@@ -105,22 +105,26 @@ python3Packages.buildPythonApplication rec {
 
   passthru = {
     resources = fetchFromGitHub {
+      name = "voicevox-resource-${version}"; # this contains ${version} to invalidate the hash upon updating the package
       owner = "VOICEVOX";
       repo = "voicevox_resource";
-      rev = "refs/tags/${version}";
-      hash = "sha256-m888DF9qgGbK30RSwNnAoT9D0tRJk6cD5QY72FRkatM=";
+      tag = version;
+      hash = "sha256-8tzH7i/BVqSbQBsFaLADHDbkf8qbtil0cVE+6Vi2daQ=";
     };
 
     pyopenjtalk = python3Packages.callPackage ./pyopenjtalk.nix { };
   };
 
   meta = {
-    changelog = "https://github.com/VOICEVOX/voicevox_engine/releases/tag/${version}";
+    changelog = "https://github.com/VOICEVOX/voicevox_engine/releases/tag/${src.tag}";
     description = "Engine for the VOICEVOX speech synthesis software";
     homepage = "https://github.com/VOICEVOX/voicevox_engine";
     license = lib.licenses.lgpl3Only;
     mainProgram = "voicevox-engine";
-    maintainers = with lib.maintainers; [ tomasajt ];
+    maintainers = with lib.maintainers; [
+      tomasajt
+      eljamm
+    ];
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 }
