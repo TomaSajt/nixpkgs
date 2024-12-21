@@ -10,17 +10,18 @@
   electron,
   _7zz,
   voicevox-engine,
+  dart-sass,
 }:
 
 buildNpmPackage rec {
   pname = "voicevox";
-  version = "0.20.0";
+  version = "0.22.1";
 
   src = fetchFromGitHub {
     owner = "VOICEVOX";
     repo = "voicevox";
     rev = "refs/tags/${version}";
-    hash = "sha256-05WTecNc1xxe7SGDPZbLtRELNghFkMTqI4pkX4PsVWI=";
+    hash = "sha256-NP4YiIIIvl00MndqWeNsmAuOq6wuMFr8hKlOxGJqocg=";
   };
 
   patches = [
@@ -36,7 +37,10 @@ buildNpmPackage rec {
         --replace-fail "postinstall" "_postinstall"
   '';
 
-  npmDepsHash = "sha256-g3avCj3S96qYPAyGXn4yvrZ4gteJld+g4eV4aRtv/3g=";
+  npmDepsHash = "sha256-NuKFhDb/J6G3pFYHZedKnY2hDC5GCp70DpqrST4bJMA=";
+
+  # unlock very specific node version bounds specified by upstream
+  npmInstallFlags = [ "--engine-strict=false" ];
 
   nativeBuildInputs =
     [
@@ -53,6 +57,10 @@ buildNpmPackage rec {
 
   buildPhase = ''
     runHook preBuild
+
+    # force sass-embedded to use our own sass instead of the bundled one
+    substituteInPlace node_modules/sass-embedded/dist/lib/src/compiler-path.js \
+        --replace-fail 'compilerCommand = (() => {' 'compilerCommand = (() => { return ["${lib.getExe dart-sass}"];'
 
     # build command taken from the definition of the `electron:build` npm script
     VITE_TARGET=electron npm exec vite build
@@ -110,7 +118,10 @@ buildNpmPackage rec {
     homepage = "https://github.com/VOICEVOX/voicevox";
     license = lib.licenses.lgpl3Only;
     mainProgram = "voicevox";
-    maintainers = with lib.maintainers; [ tomasajt ];
+    maintainers = with lib.maintainers; [
+      tomasajt
+      eljamm
+    ];
     platforms = electron.meta.platforms;
   };
 }
