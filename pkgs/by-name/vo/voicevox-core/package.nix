@@ -6,39 +6,42 @@
   autoPatchelfHook,
 }:
 
-let
-  platformInfoTable = {
-    "x86_64-linux" = {
-      id = "linux-x64";
-      hash = "sha256-TlPwa3aPgXfRfUGpWkkcJfL5ApXmEtahs8DllVABUZQ=";
-    };
-    "aarch64-linux" = {
-      id = "linux-arm64";
-      hash = "sha256-BPveb87u/RODk0ZI0EbMTLwV83CBCp7/V6hLw9PKbCw=";
-    };
-    "x86_64-darwin" = {
-      id = "osx-x64";
-      hash = "sha256-Sh698qMdhMm3abUQye6bZ0V/ixPTn6lBvoRXog9+GBU=";
-    };
-    "aarch64-darwin" = {
-      id = "osx-arm64";
-      hash = "sha256-DgW8YAyoBW9RxHsuHdzaNMVf8WwvSEt1JeJ5Tbkm+6g=";
-    };
-  };
-
-  platformInfo =
-    platformInfoTable.${stdenv.hostPlatform.system}
-      or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
-in
 stdenv.mkDerivation (finalAttrs: {
   pname = "voicevox-core";
   version = "0.15.5";
 
-  # Note: Only the prebuilt binaries are able to decrypt the encrypted voice models
-  src = fetchurl {
-    url = "https://github.com/VOICEVOX/voicevox_core/releases/download/${finalAttrs.version}/voicevox_core-${platformInfo.id}-cpu-${finalAttrs.version}.zip";
-    inherit (platformInfo) hash;
-  };
+  # When updating, run the following command to fetch all FODs:
+  # nix-build -A voicevox-core.sources --keep-going
+  passthru.sources =
+    let
+      # Note: Only the prebuilt binaries are able to decrypt the encrypted voice models
+      fetchCoreArtifact =
+        { id, hash }:
+        fetchurl {
+          url = "https://github.com/VOICEVOX/voicevox_core/releases/download/${finalAttrs.version}/voicevox_core-${id}-cpu-${finalAttrs.version}.zip";
+          inherit hash;
+        };
+    in
+    {
+      "x86_64-linux" = fetchCoreArtifact {
+        id = "linux-x64";
+        hash = "sha256-TlPwa3aPgXfRfUGpWkkcJfL5ApXmEtahs8DllVABUZQ=";
+      };
+      "aarch64-linux" = fetchCoreArtifact {
+        id = "linux-arm64";
+        hash = "sha256-BPveb87u/RODk0ZI0EbMTLwV83CBCp7/V6hLw9PKbCw=";
+      };
+      "x86_64-darwin" = fetchCoreArtifact {
+        id = "osx-x64";
+        hash = "sha256-Sh698qMdhMm3abUQye6bZ0V/ixPTn6lBvoRXog9+GBU=";
+      };
+      "aarch64-darwin" = fetchCoreArtifact {
+        id = "osx-arm64";
+        hash = "sha256-DgW8YAyoBW9RxHsuHdzaNMVf8WwvSEt1JeJ5Tbkm+6g=";
+      };
+    };
+
+  src = finalAttrs.passthru.sources.${stdenv.hostPlatform.system};
 
   nativeBuildInputs = [ unzip ] ++ lib.optionals stdenv.hostPlatform.isLinux [ autoPatchelfHook ];
 
@@ -72,7 +75,7 @@ stdenv.mkDerivation (finalAttrs: {
       tomasajt
       eljamm
     ];
-    platforms = lib.attrNames platformInfoTable;
+    platforms = lib.attrNames finalAttrs.passthru.sources;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
   };
 })
