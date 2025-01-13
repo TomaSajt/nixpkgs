@@ -1,122 +1,104 @@
 {
+  lib,
   fetchFromGitHub,
   fetchurl,
-  fetchYarnDeps,
+  fetchNpmDeps,
   nodejs,
-  yarn,
-  electron_30,
-  gcc,
-  gnumake,
+  electron_32,
+  npmHooks,
   makeWrapper,
-  fixup-yarn-lock,
-  python3,
-  lib,
   stdenv,
   libpulseaudio,
 }:
 
 let
-  electron = electron_30;
+  electron = electron_32;
 
-  electronDist = electron + (if stdenv.isDarwin then "/Applications" else "/libexec/electron");
-
+  # IMPORTANT: if the file doesn't exactly match the expected one, it will try to download it
   ringrtc = fetchurl {
-    url = "https://build-artifacts.signal.org/libraries/ringrtc-desktop-build-v2.42.0.tar.gz";
-    hash = "sha256-x86VmT7UzHe2uRLgUt60yGcdY+RGBcErV2pYcik/aH4=";
+    url = "https://build-artifacts.signal.org/libraries/ringrtc-desktop-build-v2.49.1.tar.gz";
+    hash = "sha256-7JEANWYhwrmQQ64NH7XEmIgZW4c+JrHOOjuvOkqxXn4=";
   };
 
+  # IMPORTANT: if the file doesn't exactly match the expected one, it will try to download it
   sqlcipher = fetchurl {
-    url = "https://build-artifacts.signal.org/desktop/sqlcipher-4.5.5-fts5-fix--3.0.7--0.2.1-ef53ea45ed92b928ecfd33c552d8d405263e86e63dec38e1ec63e1b0193b630b.tar.gz";
-    hash = "sha256-71PqRe2SuSjs/TPFUtjUBSY+huY97Djh7GPhsBk7Yws=";
+    url = "https://build-artifacts.signal.org/desktop/sqlcipher-v2-4.6.1-signal-patch2--0.2.0-b0dbebe5b2d81879984bfa2318ba364fb4d436669ddc1668d2406eaaaee40b7e.tar.gz";
+    hash = "sha256-sNvr5bLYGHmYS/ojGLo2T7TUNmad3BZo0kBuqq7kC34=";
   };
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "signal-desktop";
-  version = "7.12.0";
+  version = "7.37.0";
 
   src = fetchFromGitHub {
     owner = "signalapp";
     repo = "Signal-Desktop";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-FRVlOxqnvYl5cujio9WOD9Vs6XiLBn3KGNWRNy5vSaQ=";
+    hash = "sha256-02F5Srb2IX0IKxmNwcFGE+V7f34dOzVVzXdBOAFW0kU=";
   };
 
-  offlineCache = fetchYarnDeps {
-    yarnLock = "${finalAttrs.src}/yarn.lock";
-    hash = "sha256-1ILcQKlHSC62HNkOj9IOhGwkjpMqrReEoiJWkanej60=";
+  npmDeps = fetchNpmDeps {
+    inherit (finalAttrs) src;
+    hash = "sha256-XB3yHQQcCYmWbW6w7b+9dcbCQzee4UCuQr/9ZuZzRAI=";
   };
 
-  dangerOfflineCache = fetchYarnDeps {
-    yarnLock = "${finalAttrs.src}/danger/yarn.lock";
-    hash = "sha256-CnTZwi93xQxYCviFEnkvtVud6bj8D3wOsjafnFue0ag=";
+  dangerNpmDeps = fetchNpmDeps {
+    inherit (finalAttrs) src;
+    sourceRoot = "${finalAttrs.src.name}/danger";
+    hash = "sha256-327VOX0PG6wyJbr9M7zWF9kviheFpEU9YCyL1ZklaH4";
   };
 
-  scOfflineCache = fetchYarnDeps {
-    yarnLock = "${finalAttrs.src}/sticker-creator/yarn.lock";
-    hash = "sha256-SkrYuI6r6yHSGlNOj9PABO6xoxka2PHJYxI5EjZE7eQ=";
+  stickerCreatorNpmDeps = fetchNpmDeps {
+    inherit (finalAttrs) src;
+    sourceRoot = "${finalAttrs.src.name}/sticker-creator";
+    hash = "sha256-xnxECrNMHCjUd71LolSz3VECEXf7B3b/3X/FsLyFO+0=";
   };
 
   nativeBuildInputs = [
-    fixup-yarn-lock
-    gcc
-    gnumake
     makeWrapper
     nodejs
-    python3
-    yarn
+    npmHooks.npmConfigHook
+    nodejs.python
   ];
 
-  patches = [ ./remove-stuff.patch ];
-
-  postPatch = ''
-    substituteInPlace package.json \
-      --replace-fail '"node": "20.11.1"' ""
-  '';
+  # patches = [ ./remove-stuff.patch ];
 
   env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
 
-  configurePhase = ''
-    runHook preConfigure
+  npmFlags = [ "--ignore-scripts" ];
 
-    export HOME=$(mktemp -d)
+  preConfigure = ''
+    npmRoot=danger
+    npmDeps=$dangerNpmDeps
+    runHook npmConfigHook
 
-    configureDependencies () {
-      yarn config --offline set yarn-offline-mirror $1
-      fixup-yarn-lock "$2/yarn.lock"
-      yarn install --offline --cwd "$2" --frozen-lockfile --ignore-platform --ignore-scripts --no-progress --non-interactive
-
-      patchShebangs "$2/node_modules/"
-    }
-
-    configureDependencies ${finalAttrs.offlineCache} "."
-    configureDependencies ${finalAttrs.dangerOfflineCache} "./danger"
-    configureDependencies ${finalAttrs.scOfflineCache} "./sticker-creator"
-
-    cp ${ringrtc} node_modules/@signalapp/ringrtc/scripts/prebuild.tar.gz
-    cp ${sqlcipher} node_modules/@signalapp/better-sqlite3/deps/sqlcipher.tar.gz
-
-    mkdir -p "$HOME/.node-gyp/${nodejs.version}"
-    echo 9 >"$HOME/.node-gyp/${nodejs.version}/installVersion"
-    ln -sfv "${nodejs}/include" "$HOME/.node-gyp/${nodejs.version}"
-    export npm_config_nodedir=${nodejs}
-
-    npm rebuild @signalapp/ringrtc --verbose
-
-    runHook postConfigure
+    npmRoot=sticker-creator
+    npmDeps=$stickerCreatorNpmDeps
+    runHook npmConfigHook
   '';
 
   buildPhase = ''
     runHook preBuild
 
-    yarn --offline run generate
-    yarn --offline run build:esbuild:prod
+    mkdir electron-headers
+    tar xf ${electron.headers} -C electron-headers --strip-components=1
+    export npm_config_nodedir="$(pwd)/electron-headers"
 
-    cp -r ${electronDist} electron-dist
+    cp ${ringrtc} node_modules/@signalapp/ringrtc/scripts/prebuild.tar.gz
+    cp ${sqlcipher} node_modules/@signalapp/better-sqlite3/deps/sqlcipher.tar.gz
+
+    #npm rebuild @signalapp/ringrtc --verbose
+    npm rebuild --verbose
+
+    npm run generate
+    npm run build:esbuild:prod
+
+    cp -r ${electron.dist} electron-dist
     chmod -R u+w electron-dist
 
-    yarn --offline run build:release \
+    npm run build:release \
         --dir \
-        --config.npmRebuild=true \
+        --config.npmRebuild=false \
         --config.electronDist=electron-dist \
         --config.electronVersion=${electron.version}
 
