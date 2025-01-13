@@ -8,6 +8,8 @@
   pytz,
 
   pytestCheckHook,
+  pkgsBuildHost,
+  selfBuildBuild,
 }:
 
 buildPythonPackage rec {
@@ -31,6 +33,8 @@ buildPythonPackage rec {
   nativeCheckInputs = [ pytestCheckHook ];
 
   pythonImportsCheck = [ "lunarcalendar" ];
+
+  passthru = { inherit selfBuildBuild; };
 
   meta = {
     homepage = "https://github.com/wolfhong/LunarCalendar";

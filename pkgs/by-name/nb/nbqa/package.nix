@@ -96,15 +96,13 @@ let
     passthru = {
       # selector is a function mapping pythonPackages to a list of code quality
       # tools, e.g. nbqa.withTools (ps: [ ps.black ])
-      withTools =
-        selector:
-        nbqa.overridePythonAttrs (
-          { dependencies, ... }:
+      asd =
+        ((nbqa).overrideAttrs {
+          foo = false;
+        }).overridePythonAttrs
           {
-            dependencies = dependencies ++ selector python3Packages;
-            doCheck = false;
-          }
-        );
+            bar = false;
+          };
 
       updateScript = nix-update-script { };
     };

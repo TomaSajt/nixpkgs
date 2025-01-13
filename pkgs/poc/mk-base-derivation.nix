@@ -59,7 +59,7 @@ let
 
       helperAttrs = {
         inherit finalPackage overrideAttrs;
-        __pkgs = defaultPkgs;
+        myScope = defaultPkgs;
       };
 
       # NOTE: The following is a hint that will be printed by the Nix cli when

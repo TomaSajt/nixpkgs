@@ -116,6 +116,8 @@ with pkgs;
   poc-foo-ext = import ../poc/foo-ext/package.nix pkgs;
   poc-keypunch = import ../poc/keypunch/package.nix pkgs;
 
+  poc-cpython312 = import ../poc/cpython312/package.nix pkgs;
+
   defaultPkgConfigPackages =
     # We don't want nix-env -q to enter this, because all of these are aliases.
     dontRecurseIntoAttrs (
