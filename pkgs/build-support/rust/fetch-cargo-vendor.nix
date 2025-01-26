@@ -71,6 +71,7 @@ let
         runHook postBuild
       '';
 
+      dontConfigure = true;
       dontInstall = true;
       dontFixup = true;
 
