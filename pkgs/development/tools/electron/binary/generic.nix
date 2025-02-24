@@ -167,9 +167,10 @@ let
     '';
 
     postFixup = ''
+      # Note: we use $ORIGIN to be able to load binaries relative to the electron executable
       patchelf \
         --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        --set-rpath "${electronLibPath}:$out/libexec/electron" \
+        --set-rpath "${electronLibPath}:\$ORIGIN" \
         $out/libexec/electron/electron \
         $out/libexec/electron/chrome_crashpad_handler
 
