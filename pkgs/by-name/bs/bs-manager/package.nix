@@ -2,7 +2,7 @@
   asar,
   autoPatchelfHook,
   dpkg,
-  electron,
+  electron_33,
   fetchurl,
   lib,
   makeWrapper,
@@ -64,7 +64,7 @@ stdenv.mkDerivation (finalAttrs: {
       --replace-fail Exec=/opt/BSManager/bs-manager Exec=bs-manager
 
     mkdir -p $out/bin
-    makeWrapper ${lib.getExe electron} $out/bin/bs-manager \
+    makeWrapper ${lib.getExe electron_33} $out/bin/bs-manager \
       --add-flags $out/opt/BSManager/resources \
       --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
       --inherit-argv0

@@ -151,7 +151,8 @@ let
     dontBuild = true;
 
     installPhase = ''
-      mkdir -p $out/libexec/electron
+      mkdir -p $out/libexec/electron $out/bin
+      ln -s $out/libexec/electron/electron-wrapper $out/bin/electron
       unzip -d $out/libexec/electron $src
       chmod u-x $out/libexec/electron/*.so*
     '';
@@ -160,7 +161,8 @@ let
     dontWrapGApps = true;
 
     preFixup = ''
-      makeWrapper "$out/libexec/electron/electron" $out/bin/electron \
+      mv $out/libexec/electron/electron{,-real}
+      makeWrapper "$out/libexec/electron/electron-real" $out/libexec/electron/electron-wrapper \
         "''${gappsWrapperArgs[@]}" \
         ${lib.optionalString needsAarch64PageSizeFix "--add-flags '--js-flags=--no-decommit-pooled-pages'"}
     '';
@@ -169,7 +171,7 @@ let
       patchelf \
         --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
         --set-rpath "${electronLibPath}:$out/libexec/electron" \
-        $out/libexec/electron/electron \
+        $out/libexec/electron/electron-real \
         $out/libexec/electron/chrome_crashpad_handler
 
       # patch libANGLE
