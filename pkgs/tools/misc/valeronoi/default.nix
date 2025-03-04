@@ -7,10 +7,7 @@
   cmake,
   gpp,
   mpfr,
-  qtbase,
-  qtimageformats,
-  qtsvg,
-  wrapQtAppsHook,
+  qt6Packages,
 }:
 
 stdenv.mkDerivation rec {
@@ -29,14 +26,14 @@ stdenv.mkDerivation rec {
     cgal
     gpp
     mpfr
-    qtbase
-    qtimageformats
-    qtsvg
+    qt6Packages.qtbase
+    qt6Packages.qtimageformats
+    qt6Packages.qtsvg
   ];
 
   nativeBuildInputs = [
     cmake
-    wrapQtAppsHook
+    qt6Packages.wrapQtAppsHook
   ];
 
   doCheck = true;
