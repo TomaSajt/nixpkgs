@@ -13015,7 +13015,7 @@ with pkgs;
 
   confclerk = libsForQt5.callPackage ../applications/misc/confclerk { };
 
-  copyq = qt6Packages.callPackage ../applications/misc/copyq { };
+  copyq = callPackage ../applications/misc/copyq { };
 
   cpeditor = libsForQt5.callPackage ../applications/editors/cpeditor { };
 
@@ -15570,7 +15570,7 @@ with pkgs;
     plugins = with wayfirePlugins; [ wcm wf-shell ];
   };
 
-  webcamoid = qt6Packages.callPackage ../applications/video/webcamoid { };
+  webcamoid = callPackage ../applications/video/webcamoid { };
 
   webcord = callPackage ../by-name/we/webcord/package.nix { electron = electron_34; };
 
