@@ -21,10 +21,8 @@
   libportal,
   openssl,
   pkg-config,
-  qtbase,
-  qttools,
+  qt6Packages,
   wrapGAppsHook3,
-  wrapQtAppsHook,
 }:
 
 stdenv.mkDerivation rec {
@@ -43,13 +41,13 @@ stdenv.mkDerivation rec {
     pkg-config
     cmake
     wrapGAppsHook3
-    wrapQtAppsHook
-    qttools
+    qt6Packages.wrapQtAppsHook
+    qt6Packages.qttools
   ];
   buildInputs =
     [
       curl
-      qtbase
+      qt6Packages.qtbase
       avahi
       libX11
       libXext

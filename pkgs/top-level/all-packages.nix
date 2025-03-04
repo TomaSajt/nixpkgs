@@ -13226,7 +13226,7 @@ with pkgs;
 
   hdrmerge = libsForQt5.callPackage ../applications/graphics/hdrmerge { };
 
-  input-leap = qt6Packages.callPackage ../applications/misc/input-leap {
+  input-leap = callPackage ../applications/misc/input-leap {
     avahi = avahi.override { withLibdnssdCompat = true; };
   };
 
