@@ -4,8 +4,6 @@
   fetchFromGitHub,
   pkg-config,
   protobuf,
-  bzip2,
-  rust-jemalloc-sys,
   zstd,
 }:
 
@@ -25,28 +23,26 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   nativeBuildInputs = [
     pkg-config
-    protobuf
+    #protobuf
     rustPlatform.bindgenHook
   ];
 
   buildInputs = [
-    bzip2
-    rust-jemalloc-sys
     zstd
   ];
 
   env = {
-    # the build process invokes git if this is not set
-    GIT_REVISION = "${finalAttrs.src.tag}-nixpkgs";
+    # if this is not set the build will try to invoke git to get the rev
+    GIT_REVISION = "nixpkgs@${finalAttrs.version}";
     ZSTD_SYS_USE_PKG_CONFIG = true;
   };
 
-  # without the checks, th build takes  up around 60G of space
-  # with checks, it's more than double that
+  # the build takes up more than 60G of space even without the checks
+  # my system ran out of space (150G) when having tests enabled
   doCheck = false;
 
   meta = {
-    description = "Sui, a next-generation smart contract platform with high throughput, low latency, and an asset-oriented programming model powered by the Move programming language";
+    description = "Next-generation smart contract platform with high throughput, low latency, and an asset-oriented programming model powered by the Move programming language";
     homepage = "https://github.com/MystenLabs/sui";
     changelog = "https://github.com/MystenLabs/sui/blob/${finalAttrs.src.rev}/RELEASES.md";
     license = with lib.licenses; [
