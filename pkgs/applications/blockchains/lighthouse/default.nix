@@ -36,8 +36,15 @@ rustPlatform.buildRustPackage rec {
     ./use-system-sqlite.patch
   ];
 
-  cargoHash = "sha256-Opkz3EVKw0M4LeWMsn1NlSw/Fg7cWVqnDJRRTPYYlLo=";
-  useFetchCargoVendor = true;
+  cargoLock = {
+    lockFile = ./Cargo.lock;
+    outputHashes = {
+      "libmdbx-0.1.4" = "sha256-ONp4uPkVCN84MObjXorCZuSjnM6uFSMXK1vdJiX074o=";
+      "lmdb-rkv-0.14.0" = "sha256-sxmguwqqcyOlfXOZogVz1OLxfJPo+Q0+UjkROkbbOCk=";
+      "quick-protobuf-0.8.1" = "sha256-dgePLYCeoEZz5DGaLifhf3gEIPaL7XB0QT9wRKY8LJg=";
+      "xdelta3-0.1.5" = "sha256-3ZZ2SDaOT8IOymgJaBCh9GNU5wpYgZnb51kN5sMsFLk=";
+    };
+  };
 
   buildFeatures = [ "modern" "gnosis" ];
 
