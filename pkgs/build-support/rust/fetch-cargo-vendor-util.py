@@ -7,7 +7,6 @@ import shutil
 import subprocess
 import sys
 import tomllib
-from os.path import islink, realpath
 from pathlib import Path
 from typing import Any, TypedDict, cast
 from urllib.parse import unquote
@@ -194,57 +193,6 @@ def find_crate_manifest_in_tree(tree: Path, crate_name: str) -> Path:
     raise Exception(f"Couldn't find manifest for crate {crate_name} inside {tree}.")
 
 
-def copy_and_patch_git_crate_subtree(git_tree: Path, crate_name: str, crate_out_dir: Path) -> None:
-    def ignore_func(dir_str: str, path_strs: list[str]) -> list[str]:
-        ignorelist: list[str] = []
-
-        dir = Path(realpath(dir_str, strict=True))
-
-        for path_str in path_strs:
-            path = dir / path_str
-            if not islink(path):
-                continue
-
-            # Filter out cyclic symlinks and symlinks pointing at nonexistant files
-            try:
-                target_path = Path(realpath(path, strict=True))
-            except OSError:
-                ignorelist.append(path_str)
-                eprint(f"Failed to resolve symlink, ignoring: {path}")
-                continue
-
-            # Filter out symlinks that point outside of the current crate's base git tree
-            if not target_path.is_relative_to(git_tree):
-                ignorelist.append(path_str)
-                eprint(f"Symlink points outside of the crate's base git tree, ignoring: {path} -> {target_path}")
-                continue
-
-        return ignorelist
-
-    crate_manifest_path = find_crate_manifest_in_tree(git_tree, crate_name)
-    crate_tree = crate_manifest_path.parent
-
-    eprint(f"Copying to {crate_out_dir}")
-    shutil.copytree(crate_tree, crate_out_dir, ignore=ignore_func)
-    crate_out_dir.chmod(0o755)
-
-    with open(crate_manifest_path, "r") as f:
-        manifest_data = f.read()
-
-    if "workspace" in manifest_data:
-        crate_manifest_metadata = get_manifest_metadata(crate_manifest_path)
-        workspace_root = Path(crate_manifest_metadata["workspace_root"])
-
-        root_manifest_path = workspace_root / "Cargo.toml"
-        manifest_path = crate_out_dir / "Cargo.toml"
-
-        manifest_path.chmod(0o644)
-        eprint(f"Patching {manifest_path}")
-
-        cmd = ["replace-workspace-values", str(manifest_path), str(root_manifest_path)]
-        subprocess.check_output(cmd)
-
-
 def extract_crate_tarball_contents(tarball_path: Path, crate_out_dir: Path) -> None:
     eprint(f"Unpacking to {crate_out_dir}")
     crate_out_dir.mkdir()
@@ -280,30 +228,34 @@ def create_vendor(vendor_staging_dir: Path, out_dir: Path) -> None:
         crate_out_dir = out_dir / dir_name
 
         if source.startswith("git+"):
-
-            source_info = parse_git_source(pkg["source"], lockfile_version)
-
-            git_sha_rev = source_info["git_sha_rev"]
-            git_tree = vendor_staging_dir / "git" / git_sha_rev
-
-            copy_and_patch_git_crate_subtree(git_tree, pkg["name"], crate_out_dir)
-
-            # git based crates allow having no checksum information
-            with open(crate_out_dir / ".cargo-checksum.json", "w") as f:
-                json.dump({"files": {}}, f)
-
+            source_info = parse_git_source(source, lockfile_version)
             source_key = source[0:source.find("#")]
 
-            if source_key in seen_source_keys:
-                continue
+            git_sha_rev = source_info["git_sha_rev"]
+            copied_git_tree = out_dir / ".internal" / "git" / git_sha_rev
 
-            seen_source_keys.add(source_key)
+            if source_key not in seen_source_keys:
+                seen_source_keys.add(source_key)
 
-            config_lines.append(f'[source."{source_key}"]')
-            config_lines.append(f'git = "{source_info["url"]}"')
-            if source_info["type"] is not None:
-                config_lines.append(f'{source_info["type"]} = "{source_info["value"]}"')
-            config_lines.append('replace-with = "vendored-sources"')
+                config_lines.append(f'[source."{source_key}"]')
+                config_lines.append(f'git = "{source_info["url"]}"')
+                if source_info["type"] is not None:
+                    config_lines.append(f'{source_info["type"]} = "{source_info["value"]}"')
+                config_lines.append('replace-with = "vendored-sources"')
+
+                git_tree = vendor_staging_dir / "git" / git_sha_rev
+                copied_git_tree.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(git_tree, copied_git_tree, ignore_dangling_symlinks=True)
+
+            crate_name = pkg["name"]
+            crate_manifest_path = find_crate_manifest_in_tree(copied_git_tree, crate_name)
+            crate_tree = crate_manifest_path.parent
+            crate_out_dir.symlink_to(crate_tree)
+
+            # git based crates allow having no checksum information
+            crate_tree.chmod(0o755)
+            with open(crate_tree / ".cargo-checksum.json", "w") as f:
+                json.dump({"files": {}}, f)
 
         elif source.startswith("registry+"):
 
