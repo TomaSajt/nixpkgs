@@ -69,7 +69,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   yarnOfflineCache = fetchYarnDeps {
     inherit (finalAttrs) src;
-    hash = "sha256-F8dCyvPoOpqjxe7DFHQkxnC3xFIyItk0r7vkk4xv48I=";
+    hash = "sha256-ANd/Ug8w8HdMfeTegzMtnYhXjlQ65OfeD0bU8CgwIOs=";
   };
 
   env = {
@@ -80,7 +80,7 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     yarnConfigHook
     nodejs
-    nodejs.python
+    (nodejs.python.withPackages (ps: [ ps.setuptools ]))
     makeWrapper
     pkg-config
   ];
@@ -94,45 +94,68 @@ stdenv.mkDerivation (finalAttrs: {
 
   postPatch = ''
     ln -s ${pluginsDir} electron-app/plugins
-    substituteInPlace package.json --replace-fail '"prepare":' '"_prepare":'
+    substituteInPlace package.json \
+      --replace-fail '"node": ">=18.17.0 <21"' ""
   '';
 
-  buildPhase = ''
-    export npm_config_nodedir=${electron-headers}
+  dontYarnInstallDeps = true;
 
-    #cp -r node_modules/grpc-tools temp-grpc-tools
+  postConfigure = ''
+    cp yarn.lock arduino-ide-extension/yarn.lock
+    cp yarn.lock electron-app/yarn.lock
 
-    npm rebuild --verbose
+    yarnConfigHook
 
-    #cp -r temp-grpc-tools node_modules/grpc-tools
-    #ln -s ${grpc-tools}/bin/protoc node_modules/grpc-tools/bin/protoc
-    #ln -s ${grpc-tools}/bin/grpc_node_plugin node_modules/grpc-tools/bin/grpc_node_plugin
+    pushd arduino-ide-extension
+    #yarnConfigHook
+    popd
+    pushd electron-app
+    #yarnConfigHook
+    popd
 
-    #mkdir node_modules/@vscode/ripgrep/bin
-    #ln -s ${ripgrep}/bin/rg node_modules/@vscode/ripgrep/bin/rg
+    # don't download prebuilt binaries
+    substituteInPlace node_modules/grpc-tools/package.json \
+      --replace-fail '"install"' '"_install"'
+    ln -s ${grpc-tools}/bin/protoc node_modules/grpc-tools/bin/protoc
+    ln -s ${grpc-tools}/bin/grpc_node_plugin node_modules/grpc-tools/bin/grpc_node_plugin
+
+
+    echo yarn install \
+        --frozen-lockfile \
+        --force \
+        --production=false \
+        --ignore-engines \
+        --ignore-platform \
+        --ignore-scripts \
+        --no-progress \
+        --non-interactive \
+        --offline
+
+    patchShebangs node_modules arduino-ide-extension/node_modules electron-app/node_modules
+
+    ls -la node_modules
+    rm -r node_modules/@vscode/windows-ca-certs
 
     pushd node_modules/@theia/ffmpeg
     substituteInPlace lib/ffmpeg.js --replace-fail "path.resolve(require.resolve('electron/package.json'), '..', 'dist')" "'${electron.dist}'" # bruh moment'
     substituteInPlace lib/replace-ffmpeg.js --replace-fail "let shouldDownload = true;" "return;"
     substituteInPlace lib/check-ffmpeg.js --replace-fail "checkFfmpeg(options = {}) {" "checkFfmpeg(options = {}) { return;"
     popd
+  '';
 
-    yarn --offline _prepare
+  buildPhase = ''
+    export npm_config_nodedir=${electron-headers}
+
+    npm rebuild --verbose
 
     pushd arduino-ide-extension
-    yarnConfigHook
-    npm rebuild --verbose
-    yarn --offline build
+      npm rebuild --verbose
     popd
-
-    pushd electron-app
-    yarnConfigHook
-    npm rebuild --verbose
-    yarn --offline rebuild
-    yarn --offline build
-    yarn --offline package
-    popd
-
+    yarn --offline prepare
+    yarn --offline --cwd arduino-ide-extension --offline build
+    yarn --offline --cwd electron-app --offline rebuild
+    yarn --offline --cwd electron-app --offline build
+    yarn --offline --cwd electron-app --offline package
   '';
 
   installPhase = ''
@@ -142,8 +165,8 @@ stdenv.mkDerivation (finalAttrs: {
     cp -r electron-app/dist/*-unpacked/{locales,resources{,.pak}} $out/share/arduino-ide
 
     makeWrapper ${lib.getExe electron} $out/bin/arduino-ide \
-        --add-flags $out/share/arduino-ide/resources/app.asar \
-        --inherit-argv0
+      --add-flags $out/share/arduino-ide/resources/app.asar \
+      --inherit-argv0
 
     runHook postInstall
   '';
