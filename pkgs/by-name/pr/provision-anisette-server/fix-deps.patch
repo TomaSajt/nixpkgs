@@ -1,0 +1,15 @@
+diff --git a/dub.selections.json b/dub.selections.json
+index a24bb29..30e3742 100644
+--- a/dub.selections.json
++++ b/dub.selections.json
+@@ -4,9 +4,9 @@
+ 		"automem": "0.6.9",
+ 		"cachetools": "0.4.1",
+ 		"dxml": "0.4.3",
++		"dynamic-loader": {"version":"9202b389affa6be0740e7295dea8f0146537a784","repository":"git+https://github.com/Dadoum/dynamicloader.git"},
+ 		"handy-httpd": "5.2.1",
+ 		"httparsed": "1.2.1",
+-		"plist": "~master",
+ 		"plist-d": {"version":"6fdaa60d62bbf7c55044069e8f03cbe74401c444","repository":"git+https://github.com/Dadoum/libplist-d.git"},
+ 		"requests": "2.1.2",
+ 		"slf4d": "2.1.1",

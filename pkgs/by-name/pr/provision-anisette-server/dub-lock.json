@@ -1,0 +1,50 @@
+{
+  "dependencies": {
+    "automem": {
+      "version": "0.6.9",
+      "sha256": "05zk8h81ih5jc4n8d7kgr6hv5f923ybf2pdyf2ld3imkx0zb0plr"
+    },
+    "cachetools": {
+      "version": "0.4.1",
+      "sha256": "1407cb3mm8pqlcljdi60lpz2vhsj6rwzax0j24xggmyhr7ij6gx7"
+    },
+    "dxml": {
+      "version": "0.4.3",
+      "sha256": "1i7cn397kwnhv43fcjv9yjm164z2c6r89id65fdmsqjzkyjw4bs9"
+    },
+    "dynamic-loader": {
+      "version": "9202b389affa6be0740e7295dea8f0146537a784",
+      "repository": "git+https://github.com/Dadoum/dynamicloader.git",
+      "sha256": "0l2d7pd5r3crkvgi9i8fbcmcbzkw12syf1i7pnics75w1gk5f717"
+    },
+    "handy-httpd": {
+      "version": "5.2.1",
+      "sha256": "1cgbwlcwwpk79x30pf5z2fvqnrm02kvd2mampfzn6y6dcaljpmlg"
+    },
+    "httparsed": {
+      "version": "1.2.1",
+      "sha256": "1nsjw55f8mwm8cnaz9ax4icky8smy0lywzfjcgq7hpkvrr4w6id9"
+    },
+    "plist-d": {
+      "version": "6fdaa60d62bbf7c55044069e8f03cbe74401c444",
+      "repository": "git+https://github.com/Dadoum/libplist-d.git",
+      "sha256": "00v556i9ky3r8dixa53dmy3dfbq19mih6fd7a38cjwpk6pvc1is2"
+    },
+    "requests": {
+      "version": "2.1.2",
+      "sha256": "10332kdsjv30zkayx3vg6lxa701wmdncf0xjxwxkcjpsw7smzs2z"
+    },
+    "slf4d": {
+      "version": "2.1.1",
+      "sha256": "1ds9p4mrsfc7a94x5asgyp8hm53qix7yi92233yk1xd5qz5slp0a"
+    },
+    "test_allocator": {
+      "version": "0.3.4",
+      "sha256": "1xpjz6smxwgm4walrv3xbzi46cddc80q5n4gs7j9gm2yx11sf7gj"
+    },
+    "unit-threaded": {
+      "version": "0.10.8",
+      "sha256": "1jvmxka6s2zzrxns62jb50p01bgybhbkrkgi9qzq93xldc6jn2i9"
+    }
+  }
+}
