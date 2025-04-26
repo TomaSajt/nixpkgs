@@ -102,6 +102,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
     dontUnpack = true;
 
     buildPhase = ''
+      cat /etc/ssl/certs/ca-certificates.crt
+
       echo "cert1: $CURL_CA_BUNDLE"
       echo "cert2: $NIX_SSL_CERT_FILE"
       echo "dummy: $DUMMY"
