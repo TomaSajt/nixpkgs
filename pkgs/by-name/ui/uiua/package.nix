@@ -84,6 +84,35 @@ rustPlatform.buildRustPackage (finalAttrs: {
         touch $out
       '';
 
+  passthru.sd = builtins.fetchurl {
+    url = "https://github.com/NixOS/nixpkgs/archive/2db4ff7a1ce15a51e828d66a22b495aca0b7f5d5.tar.gz";
+    sha256 = "";
+  };
+
+  passthru.asd = builtins.getEnv "NIX_SSL_CERT_FILE";
+
+  passthru.wasd = stdenv.mkDerivation {
+    name = "asd";
+
+    impureEnvVars = [
+      "CURL_CA_BUNDLE"
+      "NIX_SSL_CERT_FILE"
+      "DUMMY"
+    ];
+    dontUnpack = true;
+
+    buildPhase = ''
+      echo "cert1: $CURL_CA_BUNDLE"
+      echo "cert2: $NIX_SSL_CERT_FILE"
+      echo "dummy: $DUMMY"
+      exit 1
+    '';
+
+    outputHash = "";
+    outputHashAlgo = "sha256";
+    outputHashMode = "recursive";
+  };
+
   meta = {
     changelog = "https://github.com/uiua-lang/uiua/blob/${finalAttrs.src.rev}/changelog.md";
     description = "Stack-oriented array programming language with a focus on simplicity, beauty, and tacit code";
