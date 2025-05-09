@@ -1,5 +1,4 @@
 {
-  autoPatchelfHook,
   callPackage,
   copyDesktopItems,
   electron,
@@ -51,13 +50,8 @@ buildNpmPackage (finalAttrs: {
   npmRebuildFlags = [ "--ignore-scripts" ];
 
   nativeBuildInputs = [
-    autoPatchelfHook # for some prebuilt node deps: query-process @resvg/resvg-js
     copyDesktopItems
     makeWrapper
-  ];
-
-  buildInputs = [
-    stdenv.cc.cc
   ];
 
   preBuild = ''
@@ -143,12 +137,26 @@ buildNpmPackage (finalAttrs: {
     };
 
     installPhase = ''
+      runHook preInstall
+
+      # ensure the prebuilt deps match the non-prebuilt deps
+      grep '"version": "${finalAttrs.passthru.query-process.version}"' node_modules/query-process/package.json
+      grep '"version": "${finalAttrs.passthru.resvg-js.version}"' node_modules/@resvg/resvg-js/package.json
+      rm -r node_modules/query-process
+      rm -r node_modules/@resvg
+      ln -s ${finalAttrs.passthru.query-process}/lib/node_modules/query-process node_modules/query-process
+      ln -s ${finalAttrs.passthru.resvg-js}/lib/node_modules/@resvg node_modules/@resvg
+
       mkdir -p $out
       cp -r node_modules $out/node_modules
+
+      runHook postInstall
     '';
   });
 
-  passthru.depotdownloader = callPackage ./depotdownloader.nix { };
+  passthru.depotdownloader = callPackage ./depotdownloader { };
+  passthru.query-process = callPackage ./query-process { };
+  passthru.resvg-js = callPackage ./resvg-js { };
 
   meta = {
     changelog = "https://github.com/Zagrios/bs-manager/blob/${finalAttrs.src.rev}/CHANGELOG.md";
@@ -161,8 +169,5 @@ buildNpmPackage (finalAttrs: {
       Scrumplex
     ];
     platforms = lib.platforms.linux;
-    sourceProvenance = with lib.sourceTypes; [
-      binaryNativeCode # prebuilt node deps
-    ];
   };
 })
