@@ -8,10 +8,7 @@
   makeDesktopItem,
   makeWrapper,
   nix-update-script,
-  stdenv,
   buildNpmPackage,
-  npmHooks,
-  nodejs,
   steam-run-free,
 }:
 
@@ -43,6 +40,13 @@ buildNpmPackage (finalAttrs: {
 
   npmDepsHash = "sha256-VsCbz7ImDnJ0tonVhA4lOPA0w//tqF4hLhrReLUqYI8=";
 
+  extraNpmDeps = fetchNpmDeps {
+    name = "bs-manager-${finalAttrs.version}-extra-npm-deps";
+    inherit (finalAttrs) src;
+    sourceRoot = "${finalAttrs.src.name}/release/app";
+    hash = "sha256-JqDsv9kvYnbJdNwXN1EbppSrFVqr2cSnVhV2+8uw54g=";
+  };
+
   makeCacheWritable = true;
 
   env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
@@ -56,9 +60,25 @@ buildNpmPackage (finalAttrs: {
 
   preBuild = ''
     pushd release/app
-    cp -r ${finalAttrs.passthru.extraNodeModules}/node_modules node_modules
-    chmod -R u+w node_modules
+
+    # also install extra node modules in ./release/app
+    # these are all native modules
+
+    rm -r "$npm_config_cache"
+    npmDeps="$extraNpmDeps" npmConfigHook
+
+    # for each package we built separately we ensure the prebuilt distribution's version matches our version
+
+    grep '"version": "${finalAttrs.passthru.query-process.version}"' node_modules/query-process/package.json
+    rm -r node_modules/query-process
+    ln -s ${finalAttrs.passthru.query-process}/lib/node_modules/query-process node_modules/query-process
+
+    grep '"version": "${finalAttrs.passthru.resvg-js.version}"' node_modules/@resvg/resvg-js/package.json
+    rm -r node_modules/@resvg
+    ln -s ${finalAttrs.passthru.resvg-js}/lib/node_modules/@resvg node_modules/@resvg
+
     npm run postinstall
+
     popd
   '';
 
@@ -116,44 +136,6 @@ buildNpmPackage (finalAttrs: {
   ];
 
   passthru.updateScript = nix-update-script { };
-
-  passthru.extraNodeModules = stdenv.mkDerivation (nodeFinalAttrs: {
-    name = "bs-manager-${finalAttrs.version}-extra-node-modules";
-
-    inherit (finalAttrs) src;
-    sourceRoot = "${nodeFinalAttrs.src.name}/release/app";
-
-    npmFlags = [ "--ignore-scripts" ];
-
-    nativeBuildInputs = [
-      npmHooks.npmConfigHook
-      nodejs
-    ];
-
-    npmDeps = fetchNpmDeps {
-      name = "bs-manager-${finalAttrs.version}-extra-npm-deps";
-      inherit (nodeFinalAttrs) src sourceRoot;
-      hash = "sha256-JqDsv9kvYnbJdNwXN1EbppSrFVqr2cSnVhV2+8uw54g=";
-    };
-
-    installPhase = ''
-      runHook preInstall
-
-      # ensure the prebuilt deps match the non-prebuilt deps
-      grep '"version": "${finalAttrs.passthru.query-process.version}"' node_modules/query-process/package.json
-      grep '"version": "${finalAttrs.passthru.resvg-js.version}"' node_modules/@resvg/resvg-js/package.json
-      rm -r node_modules/query-process
-      rm -r node_modules/@resvg
-      ln -s ${finalAttrs.passthru.query-process}/lib/node_modules/query-process node_modules/query-process
-      ln -s ${finalAttrs.passthru.resvg-js}/lib/node_modules/@resvg node_modules/@resvg
-
-      mkdir -p $out
-      cp -r node_modules $out/node_modules
-
-      runHook postInstall
-    '';
-  });
-
   passthru.depotdownloader = callPackage ./depotdownloader { };
   passthru.query-process = callPackage ./query-process { };
   passthru.resvg-js = callPackage ./resvg-js { };
