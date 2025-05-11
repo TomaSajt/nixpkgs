@@ -66,10 +66,16 @@ stdenv.mkDerivation (finalAttrs: {
       (lib.cmakeBool "USE_SYSTEM_UNARR" true)
       (lib.cmakeBool "PORTABLE_MODE" false)
     ]
-    ++ lib.optionals stdenv.isDarwin [
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
       (lib.cmakeBool "MACOS_BUILD_APP_BUNDLE" true)
       (lib.cmakeBool "MACOS_BUNDLE_QT" false)
     ];
+
+  # make the app runnable from the terminal or via `nix run`
+  postInstall = lib.optionals stdenv.hostPlatform.isDarwin ''
+    mkdir -p "$out/bin"
+    ln -s "$out/Applications/NanoBoyAdvance.app/Contents/MacOS/NanoBoyAdvance" "$out/bin/NanoBoyAdvance"
+  '';
 
   meta = {
     description = "Cycle-accurate Nintendo Game Boy Advance emulator";
