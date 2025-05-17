@@ -2,11 +2,16 @@
   lib,
   fetchurl,
   buildPythonPackage,
+
   pkg-config,
-  python,
-  dbus-python,
-  packaging,
+
   enlightenment,
+
+  packaging,
+  setuptools,
+
+  dbus-python,
+
   directoryListingUpdater,
 }:
 
@@ -15,10 +20,10 @@
 buildPythonPackage rec {
   pname = "python-efl";
   version = "1.26.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchurl {
-    url = "http://download.enlightenment.org/rel/bindings/python/${pname}-${version}.tar.xz";
+    url = "http://download.enlightenment.org/rel/bindings/python/python-efl-${version}.tar.xz";
     hash = "sha256-3Ns5fhIHihnpDYDnxvPP00WIZL/o1UWLzgNott4GKNc=";
   };
 
@@ -26,21 +31,17 @@ buildPythonPackage rec {
 
   buildInputs = [ enlightenment.efl ];
 
-  propagatedBuildInputs = [
-    dbus-python
+  build-system = [
     packaging
+    setuptools
+  ];
+
+  dependencies = [
+    dbus-python
   ];
 
   preConfigure = ''
     NIX_CFLAGS_COMPILE="$(pkg-config --cflags efl evas) $NIX_CFLAGS_COMPILE"
-  '';
-
-  preBuild = ''
-    ${python.pythonOnBuildForHost.interpreter} setup.py build_ext
-  '';
-
-  installPhase = ''
-    ${python.pythonOnBuildForHost.interpreter} setup.py install --prefix=$out --single-version-externally-managed
   '';
 
   doCheck = false;
