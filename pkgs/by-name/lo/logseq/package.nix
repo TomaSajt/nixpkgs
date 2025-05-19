@@ -24,15 +24,32 @@
   git,
 }:
 
+let
+  logseqVersion = "0.10.10";
+  logseqHash = "sha256-eqs6yTooN40b30jwftXMXpIt6JA9zghVb39XXXsh3Ps=";
+
+  cljsTimeRev = "5704fbf48d3478eedcf24d458c8964b3c2fd59a9";
+  cljsTimeHash = "sha256-IApL+SEm7AhbTN7J/1KiAKTx7rd53hchRh3jmPQ412g=";
+
+  bbTasksRev = "70d3edeb287f5cec7192e642549a401f7d6d4263";
+  bbTasksHash = "sha256-xVJj5XCkqfaNjnhYZkuqTSJN0ry8UVMaN44r9pxggB0=";
+
+  mavenDepsHash = "sha256-gcq9zP5AQtpZU7sC9Oq3PkTj6uDo2NSShigkcuglV98=";
+
+  yarnOfflineCacheRootHash = "sha256-bPhBvVFN7Vii5p2v3aBOkan6lsqWeYGhs4LnBdN/ETc=";
+  yarnOfflineCacheStaticResourcesHash = "sha256-xuZj2EKHxvkiDPKMLh3ZSvLT54k+buHqg9lRTFv8rNI=";
+  yarnOfflineCacheAmplifyHash = "sha256-IOhSwIf5goXCBDGHCqnsvWLf3EUPqq75xfQg55snIp4=";
+  yarnOfflineCacheTldrawHash = "sha256-CtMl3MPlyO5nWfFhCC1SLb/+1HUM3YfFATAPqJg3rUo=";
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "logseq";
-  version = "0.10.10";
+  version = logseqVersion;
 
   src = fetchFromGitHub {
     owner = "logseq";
     repo = "logseq";
     tag = finalAttrs.version;
-    hash = "sha256-eqs6yTooN40b30jwftXMXpIt6JA9zghVb39XXXsh3Ps=";
+    hash = logseqHash;
   };
 
   patches = [
@@ -40,14 +57,14 @@ stdenv.mkDerivation (finalAttrs: {
       cljs_time_src = fetchFromGitHub {
         owner = "logseq";
         repo = "cljs-time";
-        rev = "5704fbf48d3478eedcf24d458c8964b3c2fd59a9";
-        hash = "sha256-IApL+SEm7AhbTN7J/1KiAKTx7rd53hchRh3jmPQ412g=";
+        rev = cljsTimeRev;
+        hash = cljsTimeHash;
       };
       bb_tasks_src = fetchFromGitHub {
         owner = "logseq";
         repo = "bb-tasks";
-        rev = "70d3edeb287f5cec7192e642549a401f7d6d4263";
-        hash = "sha256-xVJj5XCkqfaNjnhYZkuqTSJN0ry8UVMaN44r9pxggB0=";
+        rev = bbTasksRev;
+        hash = bbTasksHash;
       };
     })
 
@@ -90,7 +107,7 @@ stdenv.mkDerivation (finalAttrs: {
 
     dontFixup = true;
 
-    outputHash = "sha256-gcq9zP5AQtpZU7sC9Oq3PkTj6uDo2NSShigkcuglV98=";
+    outputHash = mavenDepsHash;
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
   };
@@ -98,7 +115,7 @@ stdenv.mkDerivation (finalAttrs: {
   yarnOfflineCacheRoot = fetchYarnDeps {
     name = "logseq-${finalAttrs.version}-yarn-deps-root";
     inherit (finalAttrs) src;
-    hash = "sha256-bPhBvVFN7Vii5p2v3aBOkan6lsqWeYGhs4LnBdN/ETc=";
+    hash = yarnOfflineCacheRootHash;
   };
 
   # ./static and ./resources are combined into ./static by the build process
@@ -107,21 +124,21 @@ stdenv.mkDerivation (finalAttrs: {
     name = "logseq-${finalAttrs.version}-yarn-deps-static-resources";
     inherit (finalAttrs) src;
     sourceRoot = "${finalAttrs.src.name}/static";
-    hash = "sha256-xuZj2EKHxvkiDPKMLh3ZSvLT54k+buHqg9lRTFv8rNI=";
+    hash = yarnOfflineCacheStaticResourcesHash;
   };
 
   yarnOfflineCacheAmplify = fetchYarnDeps {
     name = "logseq-${finalAttrs.version}-yarn-deps-amplify";
     inherit (finalAttrs) src;
     sourceRoot = "${finalAttrs.src.name}/packages/amplify";
-    hash = "sha256-IOhSwIf5goXCBDGHCqnsvWLf3EUPqq75xfQg55snIp4=";
+    hash = yarnOfflineCacheAmplifyHash;
   };
 
   yarnOfflineCacheTldraw = fetchYarnDeps {
     name = "logseq-${finalAttrs.version}-yarn-deps-tldraw";
     inherit (finalAttrs) src;
     sourceRoot = "${finalAttrs.src.name}/tldraw";
-    hash = "sha256-CtMl3MPlyO5nWfFhCC1SLb/+1HUM3YfFATAPqJg3rUo=";
+    hash = yarnOfflineCacheTldrawHash;
   };
 
   strictDeps = true;
