@@ -5,21 +5,18 @@
   makeWrapper,
   unzip,
   glib,
-  gtk2,
   gtk3,
   jre,
   libXtst,
   coreutils,
   gnugrep,
   zulu,
-  preferGtk3 ? true,
   preferZulu ? true,
 }:
 
 let
   rev = 3627;
   jre' = if preferZulu then zulu else jre;
-  gtk' = if preferGtk3 then gtk3 else gtk2;
 in
 stdenv.mkDerivation rec {
   pname = "davmail";
@@ -46,7 +43,7 @@ stdenv.mkDerivation rec {
     mkdir -p $out/share/davmail
     cp -vR ./* $out/share/davmail
     makeWrapper $out/share/davmail/davmail $out/bin/davmail \
-      --set-default JAVA_OPTS "-Xmx512M -Dsun.net.inetaddr.ttl=60 -Djdk.gtk.version=${lib.versions.major gtk'.version}" \
+      --set-default JAVA_OPTS "-Xmx512M -Dsun.net.inetaddr.ttl=60" \
       --prefix PATH : ${
         lib.makeBinPath [
           jre'
@@ -57,7 +54,7 @@ stdenv.mkDerivation rec {
       --prefix LD_LIBRARY_PATH : ${
         lib.makeLibraryPath [
           glib
-          gtk'
+          gtk3
           libXtst
         ]
       }
