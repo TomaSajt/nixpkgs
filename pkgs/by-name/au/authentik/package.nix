@@ -168,7 +168,7 @@ let
       djangorestframework = prev.buildPythonPackage {
         pname = "djangorestframework";
         version = "3.16.0";
-        format = "setuptools";
+        pyproject = true;
 
         src = fetchFromGitHub {
           owner = "authentik-community";
@@ -177,7 +177,9 @@ let
           hash = "sha256-YrEDEU3qtw/iyQM3CoB8wYx57zuPNXiJx6ZjrIwnCNU=";
         };
 
-        propagatedBuildInputs = with final; [
+        build-system = with final; [ setuptools ];
+
+        dependencies = with final; [
           django
           pytz
         ];

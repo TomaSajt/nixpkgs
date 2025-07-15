@@ -15,27 +15,23 @@
   nix-update-script,
 }:
 
-let
-  inherit (python3Packages)
-    dbus-python
-    buildPythonApplication
-    pygobject3
-    urllib3
-    setuptools
-    ;
-in
-buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "devede";
   version = "4.21.0";
-  format = "setuptools";
-  namePrefix = "";
+  pyproject = true;
 
   src = fetchFromGitLab {
     owner = "rastersoft";
     repo = "devedeng";
-    rev = version;
+    tag = version;
     hash = "sha256-sLJkIKw0ciX6spugbdO0eZ1dIkoHfuu5e/f2XwA70a0=";
   };
+
+  postPatch = ''
+    substituteInPlace src/devedeng/configuration_data.py \
+      --replace-fail "/usr/share" "$out/share" \
+      --replace-fail "/usr/local/share" "$out/share"
+  '';
 
   nativeBuildInputs = [
     gettext
@@ -44,29 +40,35 @@ buildPythonApplication rec {
   ];
 
   buildInputs = [
-    ffmpeg
-  ];
-
-  propagatedBuildInputs = [
     gtk3
-    pygobject3
     gdk-pixbuf
-    dbus-python
-    ffmpeg
-    mplayer
-    dvdauthor
-    vcdimager
-    cdrkit
-    urllib3
-    setuptools
   ];
 
-  postPatch = ''
-    substituteInPlace setup.py --replace "'/usr'," ""
-    substituteInPlace src/devedeng/configuration_data.py \
-      --replace "/usr/share" "$out/share" \
-      --replace "/usr/local/share" "$out/share"
-  '';
+  build-system = with python3Packages; [
+    setuptools
+    setuptools-gettext
+  ];
+
+  dependencies = with python3Packages; [
+    pygobject3
+    setuptools # pkg_resources is imported during runtime
+  ];
+
+  # don't double-wrap executables
+  dontWrapGApps = true;
+
+  makeWrapperArgs = [
+    "\${gappsWrapperArgs[@]}"
+    "--prefix PATH : ${
+      lib.makeBinPath [
+        ffmpeg
+        mplayer
+        dvdauthor
+        vcdimager
+        cdrkit
+      ]
+    }"
+  ];
 
   passthru.updateScript = nix-update-script { };
 

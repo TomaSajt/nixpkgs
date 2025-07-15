@@ -11,7 +11,7 @@
 python3.pkgs.buildPythonApplication rec {
   pname = "etebase-server";
   version = "0.14.2";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "etesync";
@@ -24,7 +24,9 @@ python3.pkgs.buildPythonApplication rec {
 
   doCheck = false;
 
-  propagatedBuildInputs =
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies =
     with python3.pkgs;
     [
       aiofiles
@@ -46,16 +48,13 @@ python3.pkgs.buildPythonApplication rec {
     ++ lib.optional withPostgres psycopg2;
 
   postInstall = ''
-    mkdir -p $out/bin $out/lib
-    cp manage.py $out/bin/etebase-server
-    wrapProgram $out/bin/etebase-server --prefix PYTHONPATH : "$PYTHONPATH"
-    chmod +x $out/bin/etebase-server
+    install -Dm755 manage.py $out/bin/etebase-server
   '';
 
   passthru.updateScript = nix-update-script { };
   passthru.python = python3;
   # PYTHONPATH of all dependencies used by the package
-  passthru.pythonPath = python3.pkgs.makePythonPath propagatedBuildInputs;
+  passthru.pythonPath = python3.pkgs.makePythonPath dependencies;
   passthru.tests = {
     nixosTest = nixosTests.etebase-server;
   };
