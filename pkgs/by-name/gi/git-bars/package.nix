@@ -8,7 +8,7 @@
 python3Packages.buildPythonApplication {
   pname = "git-bars";
   version = "unstable-2023-08-08";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "knadh";
@@ -17,10 +17,17 @@ python3Packages.buildPythonApplication {
     hash = "sha256-jHP6LqhUQv6hh97tSXAdOruWdtp2FXM6ANlpWoA+fHQ=";
   };
 
-  propagatedBuildInputs = [
-    git
-    python3Packages.setuptools
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    setuptools # pkg_resources is imported during runtime
   ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath [ git ]}"
+  ];
+
+  pythonImportsCheck = [ "gitbars.gitbars" ];
 
   meta = with lib; {
     homepage = "https://github.com/knadh/git-bars";

@@ -11,7 +11,7 @@
 python3Packages.buildPythonApplication {
   pname = "gif-for-cli";
   version = "1.1.2";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "google";
@@ -29,9 +29,11 @@ python3Packages.buildPythonApplication {
     })
   ];
 
-  # coverage is not needed to build and test this package
-  postPatch = ''
-    sed -i '/coverage>=/d' setup.py
+  # for some reason, the symlink logic in setup.py doesn't work
+  # with the new package installation logic
+  # let's just move this directory where it belongs
+  preBuild = ''
+    mv third_party gif_for_cli/third_party
   '';
 
   buildInputs = [
@@ -39,11 +41,20 @@ python3Packages.buildPythonApplication {
     libjpeg
   ];
 
-  propagatedBuildInputs = with python3Packages; [
-    ffmpeg
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     pillow
     requests
     x256
+  ];
+
+  nativeCheckInputs = with python3Packages; [
+    pytestCheckHook
+  ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath [ ffmpeg ]}"
   ];
 
   meta = with lib; {
