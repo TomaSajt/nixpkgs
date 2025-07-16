@@ -4,6 +4,7 @@
   rustPlatform,
   fetchFromGitHub,
   pkg-config,
+  lld,
 
   bzip2,
   libGL,
@@ -19,13 +20,13 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "gopher64";
-  version = "1.0.17";
+  version = "1.1.0";
 
   src = fetchFromGitHub {
     owner = "gopher64";
     repo = "gopher64";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-DDFtPISV17jQMECBIqYbbGhZpjYXuNnOq7EiEVtSzgc=";
+    hash = "sha256-6lHren+Uj8PVKQsHTQyjGoWzIVSAtEpzi76yksVqM3w=";
     fetchSubmodules = true;
     leaveDotGit = true;
     postFetch = ''
@@ -50,13 +51,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
       --replace-fail "@GIT_REV@" $(cat GIT_REV)
   '';
 
-  cargoHash = "sha256-31kEYwlDA6iYcwPZyQU4gM/VLfPNeYcDKhhBqzNp/QE=";
+  cargoHash = "sha256-ahr1B5EIz4WcuMjj+4IcBhQO1zLdbZ5Kf7qeJfYXCeQ=";
 
   env.ZSTD_SYS_USE_PKG_CONFIG = true;
 
   nativeBuildInputs = [
     pkg-config
     rustPlatform.bindgenHook
+    #lld
   ];
 
   buildInputs = [
