@@ -17,7 +17,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "solaar";
   version = "1.1.14";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "pwr-Solaar";
@@ -39,14 +39,16 @@ python3Packages.buildPythonApplication rec {
   ];
 
   buildInputs = [
+    gtk3
     libappindicator
     librsvg
   ];
 
-  propagatedBuildInputs = with python3Packages; [
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     evdev
     dbus-python
-    gtk3
     hid-parser
     psutil
     pygobject3

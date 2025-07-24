@@ -18,7 +18,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "indicator-sound-switcher";
   version = "2.3.10.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "yktoo";
@@ -29,7 +29,7 @@ python3Packages.buildPythonApplication rec {
 
   postPatch = ''
     substituteInPlace lib/indicator_sound_switcher/lib_pulseaudio.py \
-      --replace "CDLL('libpulse.so.0')" "CDLL('${libpulseaudio}/lib/libpulse.so')"
+      --replace-fail "CDLL('libpulse.so.0')" "CDLL('${libpulseaudio}/lib/libpulse.so')"
   '';
 
   nativeBuildInputs = [
@@ -42,18 +42,25 @@ python3Packages.buildPythonApplication rec {
   ];
 
   buildInputs = [
-    librsvg
-  ];
-
-  propagatedBuildInputs = [
-    python3Packages.setuptools
-    python3Packages.pygobject3
     gtk3
     librsvg
     libayatana-appindicator
-    libpulseaudio
     keybinder3
   ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    setuptools # pkg_resources is imported during runtime
+    pygobject3
+  ];
+
+  # don't double-wrap executables
+  dontWrapGApps = true;
+
+  makeWrapperArgs = [ "\${gappsWrapperArgs[@]}" ];
+
+  pythonImportsCheck = [ "indicator_sound_switcher" ];
 
   meta = with lib; {
     description = "Sound input/output selector indicator for Linux";

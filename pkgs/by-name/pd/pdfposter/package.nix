@@ -11,8 +11,7 @@ let
       # https://gitlab.com/pdftools/pdfposter/-/merge_requests/7
       pypdf2 = super.pypdf2.overridePythonAttrs (oldAttrs: rec {
         version = "2.11.1";
-        format = "setuptools";
-        pyproject = null;
+        build-system = with self; [ setuptools ];
         src = fetchPypi {
           pname = "PyPDF2";
           inherit version;
@@ -22,19 +21,20 @@ let
     };
   };
 in
-with localPython.pkgs;
-buildPythonApplication rec {
+localPython.pkgs.buildPythonApplication rec {
   pname = "pdfposter";
   version = "0.8.1";
-  format = "setuptools";
-
-  propagatedBuildInputs = [ pypdf2 ];
+  pyproject = true;
 
   src = fetchPypi {
     pname = "pdftools.pdfposter";
     inherit version;
     hash = "sha256-yWFtHgVKAWs4dRlSk8t8cB2KBJeBOa0Frh3BLR9txS0=";
   };
+
+  build-system = with localPython.pkgs; [ setuptools ];
+
+  dependencies = with localPython.pkgs; [ pypdf2 ];
 
   pythonImportsCheck = [
     "pdftools.pdfposter"

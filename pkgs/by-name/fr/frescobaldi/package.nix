@@ -9,7 +9,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "frescobaldi";
   version = "3.3.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "wbsoft";
@@ -18,9 +18,10 @@ python3Packages.buildPythonApplication rec {
     sha256 = "sha256-Q6ruthNcpjLlYydUetkuTECiCIzu055bw40O8BPGq/A=";
   };
 
-  propagatedBuildInputs = with python3Packages; [
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     qpageview
-    lilypond
     pygame
     python-ly
     sip4
@@ -43,6 +44,7 @@ python3Packages.buildPythonApplication rec {
   dontWrapQtApps = true;
   makeWrapperArgs = [
     "\${qtWrapperArgs[@]}"
+    "--prefix PATH : ${lib.makeBinPath [ lilypond ]}"
   ];
 
   meta = with lib; {

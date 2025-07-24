@@ -12,7 +12,7 @@
 python3Packages.buildPythonPackage rec {
   pname = "s-tui";
   version = "1.2.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "amanusk";
@@ -21,11 +21,18 @@ python3Packages.buildPythonPackage rec {
     hash = "sha256-VdQSDRDdRO6jHSuscOQZXnVM6nWHaXRfR4sZ3x5lriI=";
   };
 
-  propagatedBuildInputs = [
-    python3Packages.urwid
-    python3Packages.psutil
-    stress
+  build-system = with python3Packages; [ setuptools ];
+
+  pythonRelaxDeps = [
+    "urwid" # urwid>=3.0.2 not satisfied by version 2.6.16
   ];
+
+  dependencies = with python3Packages; [
+    urwid
+    psutil
+  ];
+
+  makeWrapperArgs = [ "--prefix PATH : ${lib.makeBinPath [ stress ]}" ];
 
   passthru = {
     updateScript = nix-update-script { };

@@ -20,7 +20,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "gscreenshot";
   version = "3.9.2";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "thenaterhood";
@@ -29,38 +29,56 @@ python3Packages.buildPythonApplication rec {
     sha256 = "sha256-u60wxtWE7VaAE/xKlcY9vE7Chs5TPd0BTe5zy1D7ZAQ=";
   };
 
+  patches = [ ./0001-Changing-paths-to-be-nix-compatible.patch ];
+
   # needed for wrapGAppsHook3 to function
   strictDeps = false;
-  # tests require a display and fail
-  doCheck = false;
 
   nativeBuildInputs = [ wrapGAppsHook3 ];
-  propagatedBuildInputs = [
-    gettext
+
+  buildInputs = [
     gobject-introspection
     gtk3
-    xdg-utils
-  ]
-  ++ lib.optionals waylandSupport [
-    # wayland deps
-    grim
-    slurp
-    wl-clipboard
-  ]
-  ++ lib.optionals x11Support [
-    # X11 deps
-    scrot
-    slop
-    xclip
-    python3Packages.xlib
-  ]
-  ++ (with python3Packages; [
-    pillow
-    pygobject3
-    setuptools
-  ]);
+  ];
 
-  patches = [ ./0001-Changing-paths-to-be-nix-compatible.patch ];
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies =
+    with python3Packages;
+    [
+      pillow
+      pygobject3
+      setuptools
+    ]
+    ++ lib.optionals x11Support [ xlib ];
+
+  makeWrapperArgs =
+    let
+      runtimeDeps = [
+        xdg-utils
+      ]
+      ++ lib.optionals waylandSupport [
+        # wayland deps
+        grim
+        slurp
+        wl-clipboard
+      ]
+      ++ lib.optionals x11Support [
+        # X11 deps
+        scrot
+        slop
+        xclip
+      ];
+    in
+    [
+      "\${gappsWrapperArgs[@]}"
+      "--prefix PATH : ${lib.makeBinPath runtimeDeps}"
+    ];
+
+  nativeCheckInputs = with python3Packages; [
+    pytestCheckHook
+    mock
+  ];
 
   meta = {
     description = "Screenshot frontend (CLI and GUI) for a variety of screenshot backends";

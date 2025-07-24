@@ -14,7 +14,7 @@
 python3.pkgs.buildPythonApplication rec {
   pname = "jiten";
   version = "1.1.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "obfusk";
@@ -40,28 +40,31 @@ python3.pkgs.buildPythonApplication rec {
     makeWrapper
     installShellFiles
   ];
+
   buildInputs = [
     pcre
     sqlite
   ];
-  propagatedBuildInputs = with python3.pkgs; [
+
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
     click
     flask
-    kanjidraw
+    kanjidraw # used as a python module
   ];
+
   nativeCheckInputs = [ nodejs ];
 
-  preBuild = ''
-    export JITEN_VERSION=${version}   # override `git describe`
-    export JITEN_FINAL=yes            # build & package *.sqlite3
-  '';
+  env.JITEN_VERSION = version; # override `git describe`
+  env.JITEN_FINAL = "yes"; # build & package *.sqlite3
 
   postPatch = ''
     rmdir nonfree-data
     ln -s ${nonFreeData} nonfree-data
-    substituteInPlace Makefile --replace /bin/bash ${bash}/bin/bash
-    substituteInPlace jiten/res/jmdict/Makefile \
-      --replace /bin/bash ${bash}/bin/bash
+
+    substituteInPlace Makefile jiten/res/jmdict/Makefile \
+      --replace-fail /bin/bash bash
   '';
 
   checkPhase = ''

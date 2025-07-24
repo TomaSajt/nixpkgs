@@ -3,27 +3,29 @@
   python3Packages,
   fetchPypi,
 }:
+
 let
   pname = "hifiscan";
   version = "1.5.2";
   hash = "sha256-8eystqjNdDP2X9beogRcsa+Wqu50uMHZv59jdc5GjUc=";
 in
 python3Packages.buildPythonApplication {
-  format = "setuptools";
   inherit pname version;
-
-  pythonPath = with python3Packages; [
-    eventkit
-    numpy
-    sounddevice
-    pyqt6
-    pyqt6-sip
-    pyqtgraph
-  ];
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version hash;
   };
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    eventkit
+    numpy
+    sounddevice
+    pyqt6
+    pyqtgraph
+  ];
 
   meta = with lib; {
     homepage = "https://github.com/erdewit/HiFiScan";

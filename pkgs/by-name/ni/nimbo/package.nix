@@ -2,35 +2,36 @@
   lib,
   python3,
   fetchFromGitHub,
-  installShellFiles,
   awscli,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "nimbo";
   version = "0.3.0";
-  format = "setuptools";
-  disabled = python3.pythonOlder "3.6";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "nimbo-sh";
     repo = "nimbo";
     rev = "v${version}";
-    sha256 = "YC5T02Sw22Uczufbyts8l99oCQW4lPq0gPMRXCoKsvw=";
+    hash = "sha256-YC5T02Sw22Uczufbyts8l99oCQW4lPq0gPMRXCoKsvw=";
   };
 
-  # Rich + Colorama are added in `propagatedBuildInputs`
+  build-system = with python3.pkgs; [ setuptools ];
+
   postPatch = ''
+    # awscli is never imported as a python package, it's only used from PATH
+    # Note: we cannot use pythonRemoveDeps because this version specifier is not spec-compliant
     substituteInPlace setup.py \
-      --replace "awscli>=1.19<2.0" "" \
-      --replace "colorama==0.4.3" "" \
-      --replace "rich>=10.1.0" ""
+      --replace-fail "awscli>=1.19<2.0" ""
   '';
 
-  nativeBuildInputs = [ installShellFiles ];
+  pythonRelaxDeps = [
+    "colorama"
+  ];
 
-  propagatedBuildInputs = with python3.pkgs; [
-    setuptools
+  dependencies = with python3.pkgs; [
+    setuptools # pkg_resources is imported during runtime
     boto3
     requests
     click
@@ -45,18 +46,8 @@ python3.pkgs.buildPythonApplication rec {
   pythonImportsCheck = [ "nimbo" ];
 
   makeWrapperArgs = [
-    "--prefix"
-    "PATH"
-    ":"
-    (lib.makeBinPath [ awscli ])
+    "--prefix PATH : ${lib.makeBinPath [ awscli ]}"
   ];
-
-  postInstall = ''
-    installShellCompletion --cmd nimbo \
-      --zsh <(_NIMBO_COMPLETE=source_zsh $out/bin/nimbo) \
-      --bash <(_NIMBO_COMPLETE=source_bash $out/bin/nimbo) \
-      --fish  <(_NIMBO_COMPLETE=source_fish $out/bin/nimbo)
-  '';
 
   meta = with lib; {
     description = "Run machine learning jobs on AWS with a single command";

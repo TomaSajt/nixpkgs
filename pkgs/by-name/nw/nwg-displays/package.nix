@@ -9,14 +9,12 @@
   pango,
   python3Packages,
   wrapGAppsHook3,
-  hyprlandSupport ? true,
-  wlr-randr,
 }:
 
 python3Packages.buildPythonApplication rec {
   pname = "nwg-displays";
   version = "0.3.25";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "nwg-piotr";
@@ -31,20 +29,19 @@ python3Packages.buildPythonApplication rec {
   ];
 
   buildInputs = [
-    gtk3
-  ];
-
-  propagatedBuildInputs = [
     atk
+    gtk3
     gdk-pixbuf
     gtk-layer-shell
     pango
-    python3Packages.gst-python
-    python3Packages.i3ipc
-    python3Packages.pygobject3
-  ]
-  ++ lib.optionals hyprlandSupport [
-    wlr-randr
+  ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    gst-python
+    i3ipc
+    pygobject3
   ];
 
   dontWrapGApps = true;

@@ -9,14 +9,16 @@
 python3Packages.buildPythonApplication rec {
   pname = "sacad";
   version = "2.8.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
     hash = "sha256-/NyRnQSqDZv+LJ1bPO35T9icQ2PN9Oa+nSmrLkQimnQ=";
   };
 
-  propagatedBuildInputs = with python3Packages; [
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     aiohttp
     appdirs
     bitarray
@@ -28,8 +30,15 @@ python3Packages.buildPythonApplication rec {
     tqdm
     unidecode
     web-cache
-    jpegoptim
-    optipng
+  ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${
+      lib.makeBinPath [
+        jpegoptim
+        optipng
+      ]
+    }"
   ];
 
   # tests require internet connection

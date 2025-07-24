@@ -6,12 +6,10 @@
   linuxHeaders,
 }:
 
-with python3Packages;
-
-buildPythonApplication {
+python3Packages.buildPythonApplication {
   pname = "steamcontroller";
   version = "2017-08-11";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "ynsta";
@@ -21,15 +19,19 @@ buildPythonApplication {
   };
 
   postPatch = ''
-    substituteInPlace src/uinput.py --replace \
+    substituteInPlace src/uinput.py --replace-fail \
       "/usr/include" "${linuxHeaders}/include"
   '';
 
   buildInputs = [ libusb1 ];
-  propagatedBuildInputs = [
-    psutil
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = [
+    python3Packages.psutil
     python3Packages.libusb1
   ];
+
   doCheck = false;
   pythonImportsCheck = [ "steamcontroller" ];
 

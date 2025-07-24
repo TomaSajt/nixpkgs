@@ -9,7 +9,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "krop";
   version = "0.7.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "arminstraub";
@@ -25,14 +25,18 @@ python3Packages.buildPythonApplication rec {
     libsForQt5.qtwayland
   ];
 
+  build-system = with python3Packages; [ setuptools ];
+
   dependencies = with python3Packages; [
     pyqt5
     pypdf2
     poppler-qt5
-    ghostscript
   ];
 
-  makeWrapperArgs = [ "\${qtWrapperArgs[@]}" ];
+  makeWrapperArgs = [
+    "\${qtWrapperArgs[@]}"
+    "--prefix PATH : ${lib.makeBinPath [ ghostscript ]}"
+  ];
 
   # Disable checks because of interference with older Qt versions // xcb
   doCheck = false;

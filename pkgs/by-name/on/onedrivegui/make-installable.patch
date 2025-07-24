@@ -1,0 +1,38 @@
+diff --git a/pyproject.toml b/pyproject.toml
+new file mode 100644
+index 0000000..274d96b
+--- /dev/null
++++ b/pyproject.toml
+@@ -0,0 +1,15 @@
++[build-system]
++requires = ["setuptools"]
++build-backend = "setuptools.build_meta"
++
++[project]
++name = "onedrivegui"
++version = "@version@"
++description = ""
++authors = []
++
++[project.scripts]
++onedrivegui = "OneDriveGUI:main"
++
++[tool.setuptools.package-data]
++resources = ["**"]
+diff --git a/src/OneDriveGUI.py b/src/OneDriveGUI.py
+index ff7967b..0098501 100644
+--- a/src/OneDriveGUI.py
++++ b/src/OneDriveGUI.py
+@@ -3222,7 +3222,11 @@ def shorten_path(path, limit):
+     return path
+ 
+ 
+-if __name__ == "__main__":
++# Hack: the app runs when the file is imported, but we need to have a function for a proper entrypoint
++def main():
++    pass
++
++if True:
+     gui_settings = read_gui_settings()
+ 
+     logging.basicConfig(

@@ -1,13 +1,17 @@
 {
   lib,
-  python3,
+  python312Packages,
   fetchFromGitHub,
 }:
 
-python3.pkgs.buildPythonApplication rec {
+let
+  # executor-23.2 not supported for interpreter python3.13
+  python3Packages = python312Packages;
+in
+python3Packages.buildPythonApplication rec {
   pname = "rotate-backups";
   version = "8.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "xolox";
@@ -16,13 +20,15 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "0r4dyd7hj403rksgp3vh1azp9n4af75r3wq3x39wxcqizpms3vkx";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     python-dateutil
     simpleeval
     update-dotdee
   ];
 
-  nativeCheckInputs = with python3.pkgs; [
+  nativeCheckInputs = with python3Packages; [
     pytestCheckHook
   ];
 

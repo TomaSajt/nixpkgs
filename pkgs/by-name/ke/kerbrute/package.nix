@@ -7,23 +7,27 @@
 python3.pkgs.buildPythonApplication rec {
   pname = "kerbrute";
   version = "0.0.2";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
     hash = "sha256-ok/yttRSkCaEdV4aM2670qERjgDBll6Oi3L5TV5YEEA=";
   };
 
-  # This package does not have any tests
-  doCheck = false;
+  build-system = with python3.pkgs; [ setuptools ];
 
-  propagatedBuildInputs = with python3.pkgs; [
+  dependencies = with python3.pkgs; [
     impacket
   ];
+
+  # This package does not have any tests
+  doCheck = false;
 
   installChechPhase = ''
     $out/bin/kerbrute --version
   '';
+
+  pythonImportsCheck = [ "kerbrute" ];
 
   meta = {
     homepage = "https://github.com/TarlogicSecurity/kerbrute";

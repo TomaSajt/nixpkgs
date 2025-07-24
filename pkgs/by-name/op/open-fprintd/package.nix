@@ -9,7 +9,7 @@
 python3Packages.buildPythonPackage rec {
   pname = "open-fprintd";
   version = "0.7";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "uunicorn";
@@ -23,26 +23,18 @@ python3Packages.buildPythonPackage rec {
     gobject-introspection
   ];
 
-  propagatedBuildInputs = with python3Packages; [
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     dbus-python
     pygobject3
   ];
 
-  checkInputs = with python3Packages; [ dbus-python ];
-
   postInstall = ''
-    install -D -m 644 debian/open-fprintd.service \
-      $out/lib/systemd/system/open-fprintd.service
-    install -D -m 644 debian/open-fprintd-resume.service \
-      $out/lib/systemd/system/open-fprintd-resume.service
-    install -D -m 644 debian/open-fprintd-suspend.service \
-      $out/lib/systemd/system/open-fprintd-suspend.service
-    substituteInPlace $out/lib/systemd/system/open-fprintd.service \
-      --replace /usr/lib/open-fprintd "$out/lib/open-fprintd"
-    substituteInPlace $out/lib/systemd/system/open-fprintd-resume.service \
-      --replace /usr/lib/open-fprintd "$out/lib/open-fprintd"
-    substituteInPlace $out/lib/systemd/system/open-fprintd-suspend.service \
-      --replace /usr/lib/open-fprintd "$out/lib/open-fprintd"
+    substituteInPlace debian/open-fprintd*.service \
+      --replace-fail "/usr/lib/open-fprintd" "$out/lib/open-fprintd"
+
+    install -Dm644 debian/open-fprintd*.service -t $out/lib/systemd/system/
   '';
 
   dontWrapGApps = true;

@@ -1,56 +1,36 @@
 {
   lib,
-  stdenv,
   fetchurl,
   python3Packages,
-  zlib,
-  bash,
+  autoPatchelfHook,
 }:
 
-let
-  pythonPackages = python3Packages;
-  inherit (pythonPackages) python;
-in
-
-pythonPackages.buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "quast";
   version = "5.3.0";
-  format = "setuptools";
+  pyproject = true; # TODO: DON'T MERGE BEFORE TESTING!
 
   src = fetchurl {
-    url = "https://github.com/ablab/quast/releases/download/${pname}_${version}/${pname}-${version}.tar.gz";
+    url = "https://github.com/ablab/quast/releases/download/quast_${version}/quast-${version}.tar.gz";
     hash = "sha256-rJ26A++dClHXqeLFaCYQTnjzQPYmOjrTk2SEQt68dOw=";
   };
 
-  pythonPath = with pythonPackages; [
+  nativeBuildInputs = [ autoPatchelfHook ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    distutils
     simplejson
     joblib
-    setuptools
-    distutils
-    matplotlib
   ];
 
-  buildInputs = [ zlib ] ++ pythonPath;
-
-  dontConfigure = true;
-
-  dontBuild = true;
-
-  installPhase = ''
-    substituteInPlace quast_libs/bedtools/Makefile \
-      --replace "/bin/bash" "${bash}/bin/bash"
-    mkdir -p "$out/${python.sitePackages}"
-    export PYTHONPATH="$out/${python.sitePackages}:$PYTHONPATH"
-    ${python.pythonOnBuildForHost.interpreter} setup.py install \
-      --install-lib=$out/${python.sitePackages} \
-      --prefix="$out"
+  postPatch = ''
+    #substituteInPlace quast_libs/bedtools/Makefile \
+    #  --replace-fail "/bin/bash" "bash"
   '';
 
   postFixup = ''
-    for file in $(find $out -type f -type f -perm /0111); do
-        old_rpath=$(patchelf --print-rpath $file) && \
-        patchelf --set-rpath $old_rpath:${lib.getLib stdenv.cc.cc}/lib $file || true
-    done
     # Link to the master program
     ln -s $out/bin/quast.py $out/bin/quast
   '';

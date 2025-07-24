@@ -2,6 +2,9 @@
   fetchFromGitHub,
   lib,
   python3Packages,
+
+  wrapGAppsHook3,
+  gobject-introspection,
   mp3Support ? true,
   lame,
   opusSupport ? true,
@@ -20,7 +23,7 @@
 python3Packages.buildPythonApplication {
   pname = "pulseaudio-dlna";
   version = "unstable-2021-11-09";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "Cygn";
@@ -29,40 +32,47 @@ python3Packages.buildPythonApplication {
     sha256 = "sha256-Oda+zQQJE2D3fiNWTzxYvI8cZVHG5JAoV2Wf5Z6IU3M=";
   };
 
-  patches = [
-    ./0001-setup.py-remove-dbus-python-from-list.patch
+  build-system = with python3Packages; [
+    setuptools
+    wrapGAppsHook3 # NOTE: DON'T MERGE, REQUIRES TESTING
+    gobject-introspection
   ];
 
-  propagatedBuildInputs =
-    with python3Packages;
-    [
-      dbus-python
-      docopt
-      requests
-      setproctitle
-      protobuf
-      psutil
-      chardet
-      netifaces
-      notify2
-      pyroute2
-      pygobject3
-      pychromecast
-      lxml
-      setuptools
-      zeroconf
-    ]
-    ++ lib.optional mp3Support lame
-    ++ lib.optional opusSupport opusTools
-    ++ lib.optional faacSupport faac
-    ++ lib.optional flacSupport flac
-    ++ lib.optional soxSupport sox
-    ++ lib.optional vorbisSupport vorbis-tools;
+  dependencies = with python3Packages; [
+    docopt
+    chardet
+    dbus-python
+    docopt
+    requests
+    setproctitle
+    protobuf
+    lxml
+    netifaces
+    zeroconf
+    urllib3
+    psutil
+    pyroute2
+    notify2
+    pychromecast
 
-  # pulseaudio-dlna shells out to pactl to configure sinks and sources.
-  # As pactl might not be in $PATH, add --suffix it (so pactl configured by the
-  # user get priority)
-  makeWrapperArgs = [ "--suffix PATH : ${lib.makeBinPath [ pulseaudio ]}" ];
+    setuptools # pkg_resources is imported during runtime
+  ];
+
+  makeWrapperArgs =
+    let
+      # pulseaudio-dlna shells out to pactl to configure sinks and sources.
+      # As pactl might not be in $PATH, add --suffix it (so pactl configured by the
+      # user get priority)
+      runtimeDeps =
+        [ pulseaudio ]
+        ++ lib.optional mp3Support lame
+        ++ lib.optional opusSupport opusTools
+        ++ lib.optional faacSupport faac
+        ++ lib.optional flacSupport flac
+        ++ lib.optional soxSupport sox
+        ++ lib.optional vorbisSupport vorbis-tools;
+    in
+    [ "--suffix PATH : ${lib.makeBinPath runtimeDeps}" ];
 
   # upstream has no tests
   checkPhase = ''

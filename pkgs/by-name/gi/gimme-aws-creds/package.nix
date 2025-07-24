@@ -11,7 +11,7 @@
 python3.pkgs.buildPythonApplication rec {
   pname = "gimme-aws-creds";
   version = "2.8.2"; # N.B: if you change this, check if overrides are still up-to-date
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "Nike-Inc";
@@ -20,12 +20,17 @@ python3.pkgs.buildPythonApplication rec {
     hash = "sha256-fsFYcfbLeYV6tpOGgNrFmYjcUAmdsx5zwUbvcctwFVs=";
   };
 
-  nativeBuildInputs = with python3.pkgs; [
+  nativeBuildInputs = [
     installShellFiles
   ];
 
-  pythonRemoveDeps = [
-    "configparser"
+  build-system = with python3.pkgs; [
+    setuptools
+    setuptools-rust # doesn't seem to be used, but it's declared for some reason
+  ];
+
+  pythonRelaxDeps = [
+    "urllib3"
   ];
 
   dependencies = with python3.pkgs; [
@@ -33,8 +38,11 @@ python3.pkgs.buildPythonApplication rec {
     beautifulsoup4
     ctap-keyring-device
     requests
+    keyring
+    fido2
     okta
     pyjwt
+    urllib3
     html5lib
     furl
   ];

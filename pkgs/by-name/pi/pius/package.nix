@@ -11,9 +11,8 @@ let
 in
 python3Packages.buildPythonApplication {
   pname = "pius";
-  namePrefix = "";
   inherit version;
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "jaymzh";
@@ -23,10 +22,14 @@ python3Packages.buildPythonApplication {
   };
 
   patchPhase = ''
-    for file in libpius/constants.py pius-keyring-mgr; do
-      sed -i "$file" -E -e's|/usr/bin/gpg2?|${gnupg}/bin/gpg|g'
-    done
+    substituteInPlace pius-keyring-mgr \
+      --replace-fail '/usr/bin/gpg' '${gnupg}/bin/gpg'
+
+    substituteInPlace libpius/constants.py \
+      --replace-fail '/usr/bin/gpg2' '${gnupg}/bin/gpg'
   '';
+
+  build-system = with python3Packages; [ setuptools ];
 
   buildInputs = [ perl ];
 

@@ -9,7 +9,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "sasutils";
   version = "0.6.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "stanford-rc";
@@ -20,7 +20,11 @@ python3Packages.buildPythonApplication rec {
 
   nativeBuildInputs = [ installShellFiles ];
 
-  propagatedBuildInputs = [ sg3_utils ];
+  build-system = with python3Packages; [ setuptools ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath [ sg3_utils ]}"
+  ];
 
   postInstall = ''
     installManPage doc/man/man1/*.1

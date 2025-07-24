@@ -14,7 +14,8 @@ python.pkgs.toPythonModule (
   python.pkgs.buildPythonApplication rec {
     pname = "searxng";
     version = "0-unstable-2025-07-16";
-    format = "setuptools";
+    pyproject = true;
+    build-system = with python.pkgs; [ setuptools ];
 
     src = fetchFromGitHub {
       owner = "searxng";
@@ -24,7 +25,8 @@ python.pkgs.toPythonModule (
     };
 
     postPatch = ''
-      sed -i 's/==/>=/' requirements.txt
+      substituteInPlace requirements.txt \
+        --replace-fail '==' '>='
     '';
 
     preBuild =
@@ -46,13 +48,22 @@ python.pkgs.toPythonModule (
         EOF
       '';
 
+    pythonRemoveDeps = [
+      "typer-slim" # we provide the non-slim version
+    ];
+
+    pythonRelaxDeps = [
+      "certifi" # certifi>=2025.7.9 not satisfied by version 2025.4.26
+      "lxml" # lxml>=6.0.0 not satisfied by version 5.4.0
+      "pygments" # pygments>=2.19.2 not satisfied by version 2.19.1
+    ];
+
     dependencies =
       with python.pkgs;
       [
         babel
         brotli
         certifi
-        cryptography
         fasttext-predict
         flask
         flask-babel
@@ -67,6 +78,7 @@ python.pkgs.toPythonModule (
         python-dateutil
         pyyaml
         setproctitle
+        tomli
         typer
         uvloop
         valkey

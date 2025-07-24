@@ -9,11 +9,10 @@
   wrapGAppsHook3,
 }:
 
-with python3Packages;
-buildPythonApplication {
+python3Packages.buildPythonApplication {
   pname = "gnomecast";
   version = "unstable-2022-04-23";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "keredson";
@@ -23,7 +22,15 @@ buildPythonApplication {
   };
 
   nativeBuildInputs = [ wrapGAppsHook3 ];
-  propagatedBuildInputs = [
+
+  buildInputs = [
+    gtk3
+    gobject-introspection
+  ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     pychromecast
     bottle
     pycaption
@@ -31,20 +38,27 @@ buildPythonApplication {
     html5lib
     pygobject3
     dbus-python
-    gtk3
-    gobject-introspection
+  ];
+
+  # There *are* tests, but they have not been updated to work
+  # with the latest version of the package
+  doCheck = false;
+
+  nativeCheckInputs = [
+    python3Packages.pytestCheckHook
   ];
 
   # NOTE: gdk-pixbuf setup hook does not run with strictDeps
   # https://nixos.org/manual/nixpkgs/stable/#ssec-gnome-hooks-gobject-introspection
   strictDeps = false;
 
-  preFixup = ''
-    gappsWrapperArgs+=(--prefix PATH : ${lib.makeBinPath [ ffmpeg ]})
-  '';
+  # don't double-wrap the executables
+  dontWrapGApps = true;
 
-  # no tests
-  doCheck = false;
+  makeWrapperArgs = [
+    "\${gappsWrapperArgs[@]}"
+    "--prefix PATH : ${lib.makeBinPath [ ffmpeg ]}"
+  ];
 
   meta = with lib; {
     description = "Native Linux GUI for Chromecasting local files";

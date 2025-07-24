@@ -1,6 +1,5 @@
 {
   lib,
-  fetchurl,
   fetchFromGitLab,
   python3Packages,
   gobject-introspection,
@@ -10,13 +9,10 @@
   xrandr,
 }:
 
-let
-  inherit (python3Packages) buildPythonApplication docutils pygobject3;
-in
-buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "arandr";
   version = "0.1.11";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitLab {
     owner = "arandr";
@@ -36,18 +32,31 @@ buildPythonApplication rec {
   # no tests
   doCheck = false;
 
-  buildInputs = [
-    docutils
-    gsettings-desktop-schemas
-    gtk3
-  ];
   nativeBuildInputs = [
     gobject-introspection
     wrapGAppsHook3
   ];
-  propagatedBuildInputs = [
-    xrandr
+
+  buildInputs = [
+    gsettings-desktop-schemas
+    gtk3
+  ];
+
+  build-system = with python3Packages; [
+    setuptools
+    docutils
+  ];
+
+  dependencies = with python3Packages; [
     pygobject3
+  ];
+
+  # don't double-wrap the executables
+  dontWrapGApps = true;
+
+  makeWrapperArgs = [
+    "\${gappsWrapperArgs[@]}"
+    "--prefix PATH : ${lib.makeBinPath [ xrandr ]}"
   ];
 
   meta = with lib; {

@@ -28,7 +28,7 @@ in
 python.pkgs.buildPythonApplication rec {
   pname = "gdtoolkit";
   version = "4.3.3";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "Scony";
@@ -39,11 +39,14 @@ python.pkgs.buildPythonApplication rec {
 
   disabled = python.pythonOlder "3.7";
 
-  propagatedBuildInputs = with python.pkgs; [
-    docopt
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python.pkgs; [
     lark
+    docopt-ng
     pyyaml
-    setuptools
+    radon
+    setuptools # pkg_resources is imported during runtime
   ];
 
   doCheck = true;

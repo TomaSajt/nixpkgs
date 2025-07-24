@@ -19,12 +19,11 @@ let
     };
   };
 in
-with py.pkgs;
 
-buildPythonApplication rec {
+py.pkgs.buildPythonApplication rec {
   pname = "expliot";
   version = "0.9.8";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitLab {
     owner = "expliot_framework";
@@ -33,6 +32,8 @@ buildPythonApplication rec {
     hash = "sha256-7Cuj3YKKwDxP2KKueJR9ZO5Bduv+lw0Y87Rw4b0jbGY=";
   };
 
+  build-system = with py.pkgs; [ setuptools ];
+
   pythonRelaxDeps = [
     "pymodbus"
     "pynetdicom"
@@ -40,12 +41,10 @@ buildPythonApplication rec {
     "python-can"
     "pyparsing"
     "zeroconf"
+    "paho-mqtt"
   ];
 
-  nativeBuildInputs = [
-  ];
-
-  propagatedBuildInputs = [
+  dependencies = with py.pkgs; [
     aiocoap
     awsiotpythonsdk
     bluepy

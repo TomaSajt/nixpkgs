@@ -2,12 +2,16 @@
   lib,
   fetchFromGitHub,
   python3Packages,
+
   wrapGAppsHook3,
   gobject-introspection,
-  gtk-layer-shell,
-  pango,
-  gdk-pixbuf,
+
   atk,
+  gtk-layer-shell,
+  gdk-pixbuf,
+  pango,
+  playerctl,
+
   # Extra packages called by various internal nwg-panel modules
   hyprland, # hyprctl
   sway, # swaylock, swaymsg
@@ -18,13 +22,12 @@
   pamixer, # pamixer
   pulseaudio, # pactl
   libdbusmenu-gtk3, # tray
-  playerctl,
 }:
 
 python3Packages.buildPythonApplication rec {
   pname = "nwg-panel";
   version = "0.10.10";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "nwg-piotr";
@@ -40,35 +43,35 @@ python3Packages.buildPythonApplication rec {
   strictDeps = false;
   dontWrapGApps = true;
 
-  buildInputs = [
-    atk
-    gdk-pixbuf
-    gtk-layer-shell
-    pango
-    playerctl
-  ];
   nativeBuildInputs = [
     wrapGAppsHook3
     gobject-introspection
   ];
-  propagatedBuildInputs =
-    (with python3Packages; [
-      i3ipc
-      netifaces
-      psutil
-      pybluez
-      pygobject3
-      requests
-      dasbus
-      setuptools
-    ])
-    # Run-time GTK dependency required by the Tray module
-    ++ [ libdbusmenu-gtk3 ];
+
+  buildInputs = [
+    atk
+    gdk-pixbuf
+    gtk-layer-shell
+    libdbusmenu-gtk3 # Run-time GTK dependency required by the Tray module
+    pango
+    playerctl
+  ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    i3ipc
+    netifaces
+    psutil
+    pybluez
+    pygobject3
+    requests
+    dasbus
+  ];
 
   postInstall = ''
-    mkdir -p $out/share/{applications,pixmaps}
-    cp $src/nwg-panel-config.desktop nwg-processes.desktop $out/share/applications/
-    cp $src/nwg-shell.svg $src/nwg-panel.svg nwg-processes.svg $out/share/pixmaps/
+    install -Dm644 nwg-panel-config.desktop nwg-processes.desktop -t $out/share/applications/
+    install -Dm644 nwg-shell.svg nwg-panel.svg nwg-processes.svg -t $out/share/pixmaps/
   '';
 
   preFixup = ''

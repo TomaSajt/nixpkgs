@@ -11,7 +11,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "patroni";
   version = "4.0.6";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "zalando";
@@ -19,6 +19,8 @@ python3Packages.buildPythonApplication rec {
     tag = "v${version}";
     sha256 = "sha256-8EodiPVmdDekdsTbv+23ZLHZd8+BQ5v5sQf/SyM1b7Y=";
   };
+
+  build-system = with python3Packages; [ setuptools ];
 
   dependencies = with python3Packages; [
     boto3
@@ -39,17 +41,18 @@ python3Packages.buildPythonApplication rec {
     ydiff
   ];
 
+  pythonRemoveDeps = [
+    "py-consul" # an optional package that has not been packaged (as of writing this)
+  ];
+
   pythonImportsCheck = [ "patroni" ];
 
-  nativeCheckInputs = with python3Packages; [
-    flake8
-    mock
-    pytestCheckHook
-    pytest-cov-stub
-    requests
+  nativeCheckInputs = [
+    python3Packages.pytestCheckHook
     versionCheckHook
     writableTmpDirAsHomeHook
   ];
+
   versionCheckProgramArg = "--version";
 
   __darwinAllowLocalNetworking = true;

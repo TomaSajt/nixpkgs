@@ -13,7 +13,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "pysolfc";
   version = "3.4.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchzip {
     url = "mirror://sourceforge/pysolfc/PySolFC-${version}.tar.xz";
@@ -52,7 +52,13 @@ python3Packages.buildPythonApplication rec {
     '';
   };
 
-  propagatedBuildInputs = with python3Packages; [
+  patches = [ ./pysolfc-datadir.patch ];
+
+  nativeBuildInputs = [ desktop-file-utils ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     tkinter
     six
     random2
@@ -62,14 +68,18 @@ python3Packages.buildPythonApplication rec {
     pycotap
     # optional :
     pygame
-    freecell-solver
-    black-hole-solver
     pillow
   ];
 
-  patches = [ ./pysolfc-datadir.patch ];
-
-  nativeBuildInputs = [ desktop-file-utils ];
+  makeWrapperArgs = [
+    # optional :
+    "--prefix PATH : ${
+      lib.makeBinPath [
+        freecell-solver
+        black-hole-solver
+      ]
+    }"
+  ];
 
   postInstall = ''
     mkdir $out/share/PySolFC/cardsets
@@ -99,7 +109,7 @@ python3Packages.buildPythonApplication rec {
   );
 
   meta = with lib; {
-    description = "Collection of more than 1000 solitaire card games";
+    description = "Collection of more than 1200 solitaire card games";
     mainProgram = "pysol.py";
     homepage = "https://pysolfc.sourceforge.io";
     license = licenses.gpl3;

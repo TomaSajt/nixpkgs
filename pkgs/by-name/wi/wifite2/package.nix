@@ -2,7 +2,6 @@
   lib,
   fetchFromGitHub,
   fetchpatch,
-  python3,
   python3Packages,
   wirelesstools,
   aircrack-ng,
@@ -21,15 +20,27 @@
 }:
 
 let
-  pythonDependencies = with python3Packages; [
-    chardet
-    scapy
+  runtimeDeps = [
+    aircrack-ng
+    wireshark-cli
+    reaverwps-t6x
+    cowpatty
+    hashcat
+    hcxtools
+    hcxdumptool
+    wirelesstools
+    which
+    bully
+    pixiewps
+    john
+    iw
+    macchanger
   ];
 in
-python3.pkgs.buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "wifite2";
   version = "2.7.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "kimocoder";
@@ -53,25 +64,20 @@ python3.pkgs.buildPythonApplication rec {
     })
   ];
 
-  propagatedBuildInputs = [
-    aircrack-ng
-    wireshark-cli
-    reaverwps-t6x
-    cowpatty
-    hashcat
-    hcxtools
-    hcxdumptool
-    wirelesstools
-    which
-    bully
-    pixiewps
-    john
-    iw
-    macchanger
-  ]
-  ++ pythonDependencies;
+  build-system = with python3Packages; [ setuptools ];
 
-  nativeCheckInputs = propagatedBuildInputs ++ [ python3.pkgs.unittestCheckHook ];
+  pythonRemoveDeps = [
+    "argparse" # argparse is part of python3
+  ];
+
+  dependencies = with python3Packages; [
+    chardet
+    scapy
+  ];
+
+  nativeCheckInputs = [ python3Packages.unittestCheckHook ] ++ runtimeDeps;
+
+  makeWrapperArgs = [ "--prefix PATH : ${lib.makeBinPath runtimeDeps}" ];
 
   meta = with lib; {
     homepage = "https://github.com/kimocoder/wifite2";

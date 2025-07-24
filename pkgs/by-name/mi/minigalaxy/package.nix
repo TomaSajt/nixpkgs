@@ -17,7 +17,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "minigalaxy";
   version = "1.3.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "sharkwouter";
@@ -47,6 +47,14 @@ python3Packages.buildPythonApplication rec {
     glib-networking
     gtk3
     libnotify
+    webkitgtk_4_1
+  ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
+    pygobject3
+    requests
   ];
 
   nativeCheckInputs = with python3Packages; [
@@ -58,12 +66,6 @@ python3Packages.buildPythonApplication rec {
   preCheck = ''
     export HOME=$(mktemp -d)
   '';
-
-  pythonPath = [
-    python3Packages.pygobject3
-    python3Packages.requests
-    webkitgtk_4_1
-  ];
 
   dontWrapGApps = true;
 

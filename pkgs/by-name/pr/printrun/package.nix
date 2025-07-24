@@ -9,7 +9,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "printrun";
   version = "2.2.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "kliment";
@@ -18,47 +18,45 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-INJNGAmghoPIiivQp6AV1XmhyIu8SjfKqL8PTpi/tkY=";
   };
 
-  postPatch = ''
-    sed -i -r "s|/usr(/local)?/share/|$out/share/|g" printrun/utils.py
-  '';
-
-  pythonRelaxDeps = [
-    "pyglet"
-    "cairosvg"
-  ];
-
   nativeBuildInputs = [
     glib
     wrapGAppsHook3
   ];
 
-  propagatedBuildInputs = with python3Packages; [
-    appdirs
+  build-system = with python3Packages; [
+    setuptools
     cython
+  ];
+
+  pythonRelaxDeps = [
+    "pyglet"
+  ];
+
+  dependencies = with python3Packages; [
     dbus-python
     numpy
-    six
     wxpython
+    platformdirs
     psutil
     pyglet
-    pyopengl
     pyserial
-    cffi
-    cairosvg
     lxml
     puremagic
   ];
 
-  # pyglet.canvas.xlib.NoSuchDisplayException: Cannot connect to "None"
-  doCheck = false;
-
-  setupPyBuildFlags = [ "-i" ];
-
   postInstall = ''
-    for f in $out/share/applications/*.desktop; do
-      sed -i -e "s|/usr/|$out/|g" "$f"
-    done
+    substituteInPlace $out/share/applications/*.desktop \
+      --replace-fail "/usr/" "$out/"
   '';
+
+  nativeCheckInputs = with python3Packages; [
+    unittestCheckHook
+  ];
+
+  unittestFlagsArray = [
+    "-s"
+    "tests"
+  ];
 
   dontWrapGApps = true;
 

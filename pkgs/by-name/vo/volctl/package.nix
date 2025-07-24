@@ -14,7 +14,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "volctl";
   version = "0.9.4";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "buzz";
@@ -25,8 +25,8 @@ python3Packages.buildPythonApplication rec {
 
   postPatch = ''
     substituteInPlace volctl/xwrappers.py \
-      --replace 'libXfixes.so' "${xorg.libXfixes}/lib/libXfixes.so" \
-      --replace 'libXfixes.so.3' "${xorg.libXfixes}/lib/libXfixes.so.3"
+      --replace-fail 'libXfixes.so' "${xorg.libXfixes}/lib/libXfixes.so" \
+      --replace-fail 'libXfixes.so.3' "${xorg.libXfixes}/lib/libXfixes.so.3"
   '';
 
   preBuild = ''
@@ -38,17 +38,20 @@ python3Packages.buildPythonApplication rec {
     wrapGAppsHook3
   ];
 
-  propagatedBuildInputs = [
+  buildInputs = [
     pango
     gtk3
-  ]
-  ++ (with python3Packages; [
+  ];
+
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     pulsectl
     click
     pycairo
     pygobject3
     pyyaml
-  ]);
+  ];
 
   # with strictDeps importing "gi.repository.Gtk" fails with "gi.RepositoryError: Typelib file for namespace 'Pango', version '1.0' not found"
   strictDeps = false;

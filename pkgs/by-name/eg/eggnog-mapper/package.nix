@@ -10,7 +10,8 @@
 python3Packages.buildPythonApplication rec {
   pname = "eggnog-mapper";
   version = "2.1.12";
-  format = "setuptools";
+  pyproject = true;
+  build-system = with python3Packages; [ setuptools ];
 
   src = fetchFromGitHub {
     owner = "eggnogdb";
@@ -22,7 +23,7 @@ python3Packages.buildPythonApplication rec {
   postPatch = ''
     # Not a great solution...
     substituteInPlace setup.cfg \
-      --replace "==" ">="
+      --replace-fail "==" ">="
   '';
 
   nativeBuildInputs = [
@@ -33,14 +34,15 @@ python3Packages.buildPythonApplication rec {
     zlib
   ];
 
-  propagatedBuildInputs = [
-    wget
-  ]
-  ++ (with python3Packages; [
+  dependencies = with python3Packages; [
     biopython
     psutil
     xlsxwriter
-  ]);
+  ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath [ wget ]}"
+  ];
 
   # Tests rely on some of the databases being available, which is not bundled
   # with this package as (1) in total, they represent >100GB of data, and (2)

@@ -8,7 +8,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "resolve-march-native";
   version = "6.0.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "hartwork";
@@ -17,10 +17,14 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-YJvKLHxn80RRVEOGeg9BwxhDZ8Hhg5Qa6ryLOXumY5w=";
   };
 
-  # NB: The tool uses gcc at runtime to resolve the -march=native flags
-  propagatedBuildInputs = [ gcc ];
+  build-system = with python3Packages; [ setuptools ];
 
-  doCheck = true;
+  nativeCheckInputs = with python3Packages; [ pytestCheckHook ];
+
+  makeWrapperArgs = [
+    # NB: The tool uses gcc at runtime to resolve the -march=native flags
+    "--prefix PATH : ${lib.makeBinPath [ gcc ]}"
+  ];
 
   meta = with lib; {
     description = "Tool to determine what GCC flags -march=native would resolve into";

@@ -7,7 +7,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "yewtube";
   version = "2.12.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "mps-youtube";
@@ -23,15 +23,20 @@ python3Packages.buildPythonApplication rec {
       --replace "__version__ =" "__version__ = '${version}' #"
   '';
 
-  propagatedBuildInputs = with python3Packages; [
-    pyperclip
+  build-system = with python3Packages; [ setuptools ];
+
+  pythonRelaxDeps = [ "httpx" ];
+
+  dependencies = with python3Packages; [
+    httpx
     requests
+    pyperclip
     youtube-search-python
     yt-dlp
     pylast
   ];
 
-  checkInputs = with python3Packages; [
+  nativeCheckInputs = with python3Packages; [
     pytestCheckHook
     dbus-python
     pygobject3

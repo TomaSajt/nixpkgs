@@ -5,12 +5,10 @@
   imagemagick,
 }:
 
-with python3.pkgs;
-
-buildPythonApplication rec {
+python3.pkgs.buildPythonApplication rec {
   pname = "noteshrink";
   version = "0.1.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "mzucker";
@@ -19,12 +17,19 @@ buildPythonApplication rec {
     sha256 = "0xhrvg3d8ffnbbizsrfppcd2y98znvkgxjdmvbvin458m2rwccka";
   };
 
-  propagatedBuildInputs = [
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
     numpy
     scipy
-    imagemagick
     pillow
   ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath [ imagemagick ]}"
+  ];
+
+  pythonImportsCheck = [ "noteshrink" ];
 
   meta = with lib; {
     description = "Convert scans of handwritten notes to beautiful, compact PDFs";

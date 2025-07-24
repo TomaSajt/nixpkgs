@@ -3,13 +3,12 @@
   python3,
   fetchFromGitHub,
   fetchpatch,
-  glibcLocales,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "topydo";
   version = "0.14";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "topydo";
@@ -27,9 +26,10 @@ python3.pkgs.buildPythonApplication rec {
     })
   ];
 
-  propagatedBuildInputs = with python3.pkgs; [
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
     arrow
-    glibcLocales
     icalendar
     prompt-toolkit
     urwid
@@ -40,14 +40,6 @@ python3.pkgs.buildPythonApplication rec {
     freezegun
     unittestCheckHook
   ];
-
-  # Skip test that has been reported multiple times upstream without result:
-  # bram85/topydo#271, bram85/topydo#274.
-  preCheck = ''
-    substituteInPlace test/test_revert_command.py --replace 'test_revert_ls' 'dont_test_revert_ls'
-  '';
-
-  LC_ALL = "en_US.UTF-8";
 
   meta = with lib; {
     description = "Cli todo application compatible with the todo.txt format";

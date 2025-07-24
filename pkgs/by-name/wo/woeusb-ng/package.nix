@@ -8,12 +8,10 @@
   grub2,
 }:
 
-with python3Packages;
-
-buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "woeusb-ng";
   version = "0.2.12";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "WoeUSB";
@@ -32,10 +30,9 @@ buildPythonApplication rec {
     wrapGAppsHook3
   ];
 
-  propagatedBuildInputs = [
-    p7zip
-    parted
-    grub2
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     termcolor
     wxpython
     six
@@ -44,6 +41,16 @@ buildPythonApplication rec {
   preConfigure = ''
     mkdir -p $out/bin $out/share/applications $out/share/polkit-1/actions
   '';
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${
+      lib.makeBinPath [
+        p7zip
+        parted
+        grub2
+      ]
+    }"
+  ];
 
   # Unable to access the X Display, is $DISPLAY set properly?
   doCheck = false;

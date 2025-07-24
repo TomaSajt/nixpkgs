@@ -9,7 +9,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "vulnix";
   version = "1.11.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "nix-community";
@@ -25,18 +25,12 @@ python3Packages.buildPythonApplication rec {
     "doc"
     "man"
   ];
+
   nativeBuildInputs = [ ronn ];
 
-  nativeCheckInputs = with python3Packages; [
-    freezegun
-    pytestCheckHook
-    pytest-cov-stub
-  ];
+  build-system = with python3Packages; [ setuptools ];
 
-  propagatedBuildInputs = [
-    nix
-  ]
-  ++ (with python3Packages; [
+  dependencies = with python3Packages; [
     click
     colorama
     pyyaml
@@ -44,11 +38,11 @@ python3Packages.buildPythonApplication rec {
     setuptools
     toml
     zodb
-  ]);
+  ];
 
-  postBuild = "make -C doc";
-
-  pytestFlagsArray = [ "src/vulnix" ];
+  postBuild = ''
+    make -C doc
+  '';
 
   postInstall = ''
     install -D -t $doc/share/doc/vulnix README.rst CHANGES.rst
@@ -56,6 +50,19 @@ python3Packages.buildPythonApplication rec {
     install -D -t $man/share/man/man1 doc/vulnix.1
     install -D -t $man/share/man/man5 doc/vulnix-whitelist.5
   '';
+
+  nativeCheckInputs = with python3Packages; [
+    freezegun
+    pytestCheckHook
+    pytest-cov-stub
+    nix
+  ];
+
+  pytestFlagsArray = [ "src/vulnix" ];
+
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath [ nix ]}"
+  ];
 
   dontStrip = true;
 

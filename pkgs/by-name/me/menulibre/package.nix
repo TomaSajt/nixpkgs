@@ -16,7 +16,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "menulibre";
   version = "2.4.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "bluesabre";
@@ -25,11 +25,14 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-IfsuOYP/H3r1GDWMVVSBfYvQS+01VJaAlZu+c05geWg=";
   };
 
-  propagatedBuildInputs = with python3Packages; [
-    pygobject3
-    gnome-menus
-    psutil
+  build-system = with python3Packages; [
+    setuptools
     distutils-extra
+  ];
+
+  dependencies = with python3Packages; [
+    pygobject3
+    psutil
   ];
 
   nativeBuildInputs = [
@@ -40,11 +43,24 @@ python3Packages.buildPythonApplication rec {
     writableTmpDirAsHomeHook
   ];
 
+  buildInputs = [
+    gnome-menus
+  ];
+
   postPatch = ''
     substituteInPlace setup.py \
       --replace-fail 'data_dir =' "data_dir = '$out/share/menulibre' #" \
       --replace-fail 'update_desktop_file(desktop_file, script_path)' ""
   '';
+
+  # don't double wrap executables
+  dontWrapGApps = true;
+
+  makeWrapperArgs = [
+    "\${gappsWrapperArgs[@]}"
+  ];
+
+  pythonImportsCheck = [ "menulibre" ];
 
   passthru = {
     updateScript = nix-update-script { };

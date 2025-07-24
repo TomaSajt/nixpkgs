@@ -28,7 +28,7 @@ in
 python.pkgs.buildPythonApplication rec {
   pname = "gdtoolkit3";
   version = "3.5.0";
-  format = "setuptools";
+  pyproject = true;
 
   # If we try to get using fetchPypi it requires GeoIP (but the package dont has that dep!?)
   src = fetchFromGitHub {
@@ -40,11 +40,14 @@ python.pkgs.buildPythonApplication rec {
 
   disabled = python.pythonOlder "3.7";
 
-  propagatedBuildInputs = with python.pkgs; [
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python.pkgs; [
     docopt
     lark
     pyyaml
-    setuptools
+    radon
+    setuptools # pkg_resources is imported during runtime
   ];
 
   doCheck = true;

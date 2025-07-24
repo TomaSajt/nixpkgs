@@ -6,7 +6,7 @@
 python3.pkgs.buildPythonApplication rec {
   pname = "textlsp";
   version = "0.3.2";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "hangyav";
@@ -15,7 +15,13 @@ python3.pkgs.buildPythonApplication rec {
     hash = "sha256-Z1ozkS6zo/h0j0AU5K+Ri/ml8KqCjdEcQKpFtNER4Hk=";
   };
 
+  postPatch = ''
+    substituteInPlace setup.py \
+      --replace-fail '==' '>='
+  '';
+
   build-system = [ python3.pkgs.setuptools ];
+
   dependencies = with python3.pkgs; [
     pygls
     lsprotocol

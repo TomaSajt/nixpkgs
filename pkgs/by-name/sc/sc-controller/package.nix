@@ -21,7 +21,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "sc-controller";
   version = "0.5.2";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "C0rn3j";
@@ -40,37 +40,36 @@ python3Packages.buildPythonApplication rec {
     gtk3
     libappindicator-gtk3
     librsvg
+    gtk-layer-shell
   ];
 
-  dependencies =
-    with python3Packages;
-    [
-      evdev
-      pygobject3
-      pylibacl
-      vdf
-      ioctl-opt
-    ]
-    ++ [
-      gtk-layer-shell
-      python3Packages.libusb1
-    ];
+  build-system = with python3Packages; [
+    setuptools
+    setuptools-scm
+  ];
 
-  nativeCheckInputs = [
-    python3Packages.pytestCheckHook
-    python3Packages.libusb1
-    python3Packages.toml
+  dependencies = with python3Packages; [
+    evdev
+    pygobject3
+    pylibacl
+    vdf
+    ioctl-opt
+    python3Packages.libusb1 # we need the python package here
+  ];
+
+  nativeCheckInputs = with python3Packages; [
+    pytestCheckHook
   ];
 
   patches = [ ./scc_osd_keyboard.patch ];
 
   postPatch = ''
-    substituteInPlace scc/paths.py --replace sys.prefix "'$out'"
-    substituteInPlace scc/uinput.py --replace /usr/include ${linuxHeaders}/include
-    substituteInPlace scc/device_monitor.py --replace "find_library('bluetooth')" "'libbluetooth.so.3'"
+    substituteInPlace scc/paths.py --replace-fail sys.prefix "'$out'"
+    substituteInPlace scc/uinput.py --replace-fail /usr/include ${linuxHeaders}/include
+    substituteInPlace scc/device_monitor.py --replace-fail 'find_library("bluetooth")' '"libbluetooth.so.3"'
   '';
 
-  LD_LIBRARY_PATH = lib.makeLibraryPath [
+  env.LD_LIBRARY_PATH = lib.makeLibraryPath [
     libX11
     libXext
     libXfixes

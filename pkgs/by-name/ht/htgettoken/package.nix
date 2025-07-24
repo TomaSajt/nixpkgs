@@ -2,13 +2,13 @@
   lib,
   fetchFromGitHub,
   python3,
-  makeWrapper,
+  bash,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "htgettoken";
   version = "2.4";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "fermitools";
@@ -17,21 +17,17 @@ python3.pkgs.buildPythonApplication rec {
     hash = "sha256-3xBACXxH5G1MO2dNFFSL1Rssc8RdauvLZ4Tx2djOgyw=";
   };
 
-  nativeBuildInputs = with python3.pkgs; [
-    setuptools
-    makeWrapper
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
+    gssapi
+    paramiko
+    urllib3
   ];
 
-  postInstall = with python3.pkgs; ''
-    wrapProgram $out/bin/htgettoken \
-      --set PYTHONPATH "${
-        makePythonPath [
-          gssapi
-          paramiko
-          urllib3
-        ]
-      }"
-  '';
+  buildInputs = [
+    bash # for the shell scripts in $out/bin
+  ];
 
   meta = with lib; {
     description = "Gets OIDC authentication tokens for High Throughput Computing via a Hashicorp vault server ";

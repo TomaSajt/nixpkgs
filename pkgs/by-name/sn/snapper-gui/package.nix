@@ -1,20 +1,18 @@
 {
   lib,
   fetchFromGitHub,
-  python3,
   python3Packages,
   adwaita-icon-theme,
   gtk3,
   wrapGAppsHook3,
   gtksourceview3,
-  snapper,
   gobject-introspection,
 }:
 
 python3Packages.buildPythonApplication {
   pname = "snapper-gui";
   version = "2020-10-20";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "ricardomv";
@@ -29,20 +27,25 @@ python3Packages.buildPythonApplication {
   ];
 
   buildInputs = [
-    python3
     adwaita-icon-theme
+    gtk3
+    gtksourceview3
   ];
 
   doCheck = false; # it doesn't have any tests
 
-  propagatedBuildInputs = with python3Packages; [
-    gtk3
+  build-system = with python3Packages; [ setuptools ];
+
+  dependencies = with python3Packages; [
     dbus-python
     pygobject3
-    setuptools
-    gtksourceview3
-    snapper
+    setuptools # pkg_resources is imported during runtime
+    # TODO: should snapper, the CLI tool be included?
   ];
+
+  dontWrapGApps = true;
+
+  makeWrapperArgs = [ "\${gappsWrapperArgs[@]}" ];
 
   meta = with lib; {
     description = "Graphical interface for snapper";

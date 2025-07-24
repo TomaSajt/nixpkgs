@@ -40,7 +40,7 @@ in
 python3.pkgs.buildPythonApplication rec {
   pname = "onboard";
   version = "${majorVersion}.1";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchurl {
     url = "https://launchpad.net/onboard/${majorVersion}/${version}/+download/${pname}-${version}.tar.gz";
@@ -76,7 +76,6 @@ python3.pkgs.buildPythonApplication rec {
     intltool
     pkg-config
     wrapGAppsHook3
-    python3.pkgs.setuptools
   ];
 
   buildInputs = [
@@ -97,7 +96,9 @@ python3.pkgs.buildPythonApplication rec {
   ]
   ++ lib.optional atspiSupport at-spi2-core;
 
-  pythonPath = with python3.pkgs; [
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
     dbus-python
     distutils-extra
     pyatspi
@@ -173,15 +174,9 @@ python3.pkgs.buildPythonApplication rec {
       --replace '"killall",' '"${procps}/bin/pkill", "-x",'
   '';
 
-  # setuptools to get distutils with python 3.12
-  installPhase = ''
-    runHook preInstall
-    ${
-      (python3.pythonOnBuildForHost.withPackages (p: [ p.setuptools ])).interpreter
-    } setup.py install --prefix="$out"
+  postInstall = ''
     cp onboard-default-settings.gschema.override.example $out/share/glib-2.0/schemas/10_onboard-default-settings.gschema.override
     glib-compile-schemas $out/share/glib-2.0/schemas/
-    runHook postInstall
   '';
 
   # Remove ubuntu icons.

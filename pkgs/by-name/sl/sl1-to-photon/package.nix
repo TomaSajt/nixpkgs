@@ -6,18 +6,21 @@
 let
   version = "0.1.3+";
 in
-python312Packages.buildPythonApplication rec {
+python312Packages.buildPythonApplication {
   pname = "sl1-to-photon";
   inherit version;
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "cab404";
     repo = "SL1toPhoton";
     rev = "7edc6ea99818622f5d49ac7af80ddd4916b8c19f";
-    sha256 = "ssFfjlBMi3FHosDBUA2gs71VUIBkEdPVcV3STNxmOIM=";
+    hash = "sha256-ssFfjlBMi3FHosDBUA2gs71VUIBkEdPVcV3STNxmOIM=";
   };
 
-  pythonPath = with python312Packages; [
+  build-system = with python312Packages; [ setuptools ];
+
+  dependencies = with python312Packages; [
     pyphotonfile
     pillow
     numpy
@@ -25,10 +28,13 @@ python312Packages.buildPythonApplication rec {
     shiboken2
   ];
 
-  format = "setuptools";
-
+  # use custom installPhase since there are no script entrypoints defined by upstream
   installPhase = ''
-    install -D -m 0755 SL1_to_Photon.py $out/bin/${pname}
+    runHook preInstall
+
+    install -D -m 0755 SL1_to_Photon.py $out/bin/sl1-to-photon
+
+    runHook postInstall
   '';
 
   meta = with lib; {

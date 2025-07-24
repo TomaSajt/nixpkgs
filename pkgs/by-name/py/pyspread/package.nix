@@ -3,8 +3,8 @@
   python3,
   fetchPypi,
   copyDesktopItems,
-  libsForQt5,
   makeDesktopItem,
+  qt6,
 }:
 
 let
@@ -15,35 +15,38 @@ let
     inherit pname version;
     hash = "sha256-MZlR2Rap5oMRfCmswg9W//FYFkSEki7eyMNhLoGZgJM=";
   };
-  inherit (libsForQt5)
-    qtsvg
-    wrapQtAppsHook
-    ;
 in
 python3.pkgs.buildPythonApplication {
-  format = "setuptools";
   inherit pname version src;
+  pyproject = true;
 
   nativeBuildInputs = [
     copyDesktopItems
-    wrapQtAppsHook
+    qt6.wrapQtAppsHook
   ];
 
   buildInputs = [
-    qtsvg
+    qt6.qtbase
   ];
 
-  propagatedBuildInputs = with python3.pkgs; [
-    python-dateutil
-    markdown2
-    matplotlib
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
     numpy
-    pyenchant
-    pyqt5
-    setuptools
-  ];
+    pyqt6
+    markdown2
+    setuptools # pkg_resources is imported during runtime
 
-  strictDeps = true;
+    # optional deps:
+    matplotlib
+    pyenchant
+    python-dateutil
+    # py-moneyed
+    rpy2
+    plotnine
+    # pycel
+    openpyxl
+  ];
 
   doCheck = false; # it fails miserably with a core dump
 
@@ -64,6 +67,8 @@ python3.pkgs.buildPythonApplication {
       ];
     })
   ];
+
+  dontWrapQtApps = true;
 
   preFixup = ''
     makeWrapperArgs+=("''${qtWrapperArgs[@]}")

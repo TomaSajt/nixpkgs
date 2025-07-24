@@ -7,7 +7,7 @@
 python3Packages.buildPythonApplication rec {
   pname = "bmaptool";
   version = "3.8.0";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "yoctoproject";
@@ -16,10 +16,17 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-YPY3sNuZ/TASNBPH94iqG6AuBRq5KjioKiuxAcu94+I=";
   };
 
-  propagatedBuildInputs = with python3Packages; [ six ];
+  build-system = with python3Packages; [ poetry-core ];
+
+  dependencies = with python3Packages; [
+    six
+    gpgme
+  ];
 
   # tests fail only on hydra.
   doCheck = false;
+
+  pythonImportsCheck = [ "bmaptool.CLI" ];
 
   meta = with lib; {
     description = "BMAP Tools";

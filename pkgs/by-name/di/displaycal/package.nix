@@ -5,14 +5,13 @@
   wrapGAppsHook3,
   gtk3,
   librsvg,
-  xorg,
   argyllcms,
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "displaycal";
   version = "3.9.16";
-  format = "setuptools";
+  pyproject = true;
 
   src = fetchPypi {
     pname = "DisplayCAL";
@@ -25,33 +24,26 @@ python3.pkgs.buildPythonApplication rec {
     gtk3
   ];
 
-  propagatedBuildInputs = with python3.pkgs; [
+  buildInputs = [
+    gtk3
+    librsvg
+  ];
+
+  build-system = with python3.pkgs; [ setuptools ];
+
+  dependencies = with python3.pkgs; [
     build
     certifi
-    wxpython
     dbus-python
     distro
     numpy
     pillow
+    protobuf
     pychromecast
     send2trash
+    wxpython
     zeroconf
   ];
-
-  buildInputs = [
-    gtk3
-    librsvg
-  ]
-  ++ (with xorg; [
-    libX11
-    libXxf86vm
-    libXext
-    libXinerama
-    libXrandr
-  ]);
-
-  # Workaround for eoyilmaz/displaycal-py3#261
-  setupPyGlobalFlags = [ "appdata" ];
 
   doCheck = false; # Tests try to access an X11 session and dbus in weird locations.
 
@@ -63,7 +55,6 @@ python3.pkgs.buildPythonApplication rec {
     makeWrapperArgs+=(
       ''${gappsWrapperArgs[@]}
       --prefix PATH : ${lib.makeBinPath [ argyllcms ]}
-      --prefix PYTHONPATH : $PYTHONPATH
     )
   '';
 
