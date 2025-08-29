@@ -1,11 +1,17 @@
 {
   lib,
-  buildDubPackage,
+  stdenv,
   fetchFromGitHub,
   dtools,
+  importDubLock,
+  dubSetupHook,
+  dubBuildHook,
+  dubCheckHook,
+  dub,
+  ldc,
 }:
 
-buildDubPackage rec {
+stdenv.mkDerivation rec {
   pname = "serve-d";
   version = "0.7.6";
 
@@ -16,11 +22,23 @@ buildDubPackage rec {
     hash = "sha256-h4zsW8phGcI4z0uMCIovM9cJ6hKdk8rLb/Jp4X4dkpk=";
   };
 
-  nativeBuildInputs = [ dtools ];
+  dubDeps = importDubLock {
+    inherit pname version;
+    lock = ./dub-lock.json;
+  };
 
-  dubLock = ./dub-lock.json;
+  nativeBuildInputs = [
+    dtools
+    dubSetupHook
+    dubBuildHook
+    ldc
+  ];
 
   doCheck = true;
+
+  nativeCheckInputs = [
+    dubCheckHook
+  ];
 
   installPhase = ''
     runHook preInstall

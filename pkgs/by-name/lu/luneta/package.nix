@@ -1,11 +1,15 @@
 {
   lib,
-  buildDubPackage,
+  stdenv,
   fetchFromGitHub,
+  importDubLock,
+  dubSetupHook,
+  dubBuildHook,
+  ldc,
   ncurses,
 }:
 
-buildDubPackage rec {
+stdenv.mkDerivation rec {
   pname = "luneta";
   version = "0.7.4";
 
@@ -19,11 +23,20 @@ buildDubPackage rec {
   # not sure why, but this alias does not resolve
   postPatch = ''
     substituteInPlace source/luneta/keyboard.d \
-        --replace-fail "wint_t" "dchar"
+      --replace-fail "wint_t" "dchar"
   '';
 
-  # ncurses dub package version is locked to 1.0.0 instead of using ~master
-  dubLock = ./dub-lock.json;
+  dubDeps = importDubLock {
+    inherit pname version;
+    # ncurses dub package version is locked to 1.0.0 instead of using ~master
+    lock = ./dub-lock.json;
+  };
+
+  nativeBuildInputs = [
+    dubSetupHook
+    dubBuildHook
+    ldc
+  ];
 
   buildInputs = [ ncurses ];
 

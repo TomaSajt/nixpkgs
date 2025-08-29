@@ -1,10 +1,14 @@
 {
   lib,
-  buildDubPackage,
+  stdenv,
   fetchFromGitHub,
+  importDubLock,
+  dubSetupHook,
+  dubBuildHook,
+  ldc,
 }:
 
-buildDubPackage {
+stdenv.mkDerivation rec {
   pname = "literate";
   version = "0-unstable-2021-01-22";
 
@@ -16,8 +20,16 @@ buildDubPackage {
     fetchSubmodules = true;
   };
 
-  # as there aren't any non-local dub dependencies, this file just has any empty list
-  dubLock = ./dub-lock.json;
+  dubDeps = importDubLock {
+    inherit pname version;
+    lock = ./dub-lock.json; # empty lockfile
+  };
+
+  nativeBuildInputs = [
+    dubSetupHook
+    dubBuildHook
+    ldc
+  ];
 
   # generate the actual .d source files defined in .lit files
   preBuild = ''

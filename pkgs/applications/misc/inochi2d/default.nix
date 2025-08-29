@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  importDubLock,
   replaceVars,
   callPackage,
 }:
@@ -17,6 +18,21 @@
 
 let
   mkGeneric = builderArgs: callPackage ./generic.nix { inherit builderArgs; };
+
+  # these deps are not listed inside `dub.sdl`, so they didn't get auto-generated
+  # these are used for generating version info when building
+  extraDubLock = {
+    dependencies = {
+      gitver = {
+        version = "1.6.1";
+        sha256 = "sha256-NCyFik4FbD7yMLd5zwf/w4cHwhzLhIRSVw1bWo/CZB4=";
+      };
+      semver = {
+        version = "0.3.2";
+        sha256 = "sha256-l6c9hniUd5xNsJepq8x30e0JTjmXs4pYUmv4ws+Nrn4=";
+      };
+    };
+  };
 in
 {
   inochi-creator = mkGeneric rec {
@@ -31,8 +47,6 @@ in
       hash = "sha256-9d3j5ZL6rGOjN1GUpCIfbjby0mNMvOK7BJbHYgwLY2k=";
     };
 
-    dubLock = ./creator-dub-lock.json;
-
     patches = [
       # Upstream asks that we change the bug tracker URL to not point to the upstream bug tracker
       (replaceVars ./support-url.patch {
@@ -41,6 +55,11 @@ in
       # Change how duplicate locales differentiate themselves (the store paths were too long)
       ./translations.patch
     ];
+
+    dubDeps = importDubLock {
+      inherit pname version;
+      lock = lib.recursiveUpdate (lib.importJSON ./creator-dub-lock.json) extraDubLock;
+    };
 
     meta = {
       # darwin has slightly different build steps
@@ -68,7 +87,10 @@ in
       ./session-dynamic-lua.patch
     ];
 
-    dubLock = ./session-dub-lock.json;
+    dubDeps = importDubLock {
+      inherit pname version;
+      lock = lib.recursiveUpdate (lib.importJSON ./session-dub-lock.json) extraDubLock;
+    };
 
     preFixup = ''
       patchelf $out/share/inochi-session/inochi-session --add-needed cimgui.so

@@ -1,12 +1,16 @@
 {
   lib,
-  buildDubPackage,
+  stdenv,
   fetchFromGitHub,
-  clang,
+  importDubLock,
+  dubSetupHook,
+  dubBuildHook,
   ldc,
+  clang,
   which,
 }:
-buildDubPackage rec {
+
+stdenv.mkDerivation rec {
   pname = "dstep";
   version = "1.0.4";
 
@@ -17,16 +21,23 @@ buildDubPackage rec {
     hash = "sha256-ZFz2+GtBk3StqXo/9x47xrDFdz5XujHR62hj0p3AjcY=";
   };
 
-  dubLock = ./dub-lock.json;
+  dubDeps = importDubLock {
+    inherit pname version;
+    lock = ./dub-lock.json;
+  };
 
   nativeBuildInputs = [
+    dubSetupHook
+    dubBuildHook
     ldc
     which
     clang
   ];
 
-  preConfigure = ''
-    ./configure --llvm-path ${lib.getLib clang.cc}
+  configurePhase = ''
+    runHook preConfigure
+    ldc2 -run configure.d --llvm-path=${lib.getLib clang.cc}
+    runHook postConfigure
   '';
 
   installPhase = ''

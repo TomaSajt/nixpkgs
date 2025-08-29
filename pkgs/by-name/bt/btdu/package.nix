@@ -1,12 +1,16 @@
 {
   lib,
-  buildDubPackage,
+  stdenv,
   fetchFromGitHub,
+  importDubLock,
+  dubSetupHook,
+  dubBuildHook,
+  ldc,
   ncurses,
   zlib,
 }:
 
-buildDubPackage rec {
+stdenv.mkDerivation rec {
   pname = "btdu";
   version = "0.6.0";
 
@@ -17,7 +21,16 @@ buildDubPackage rec {
     hash = "sha256-B8ojxdXibeNEZay9S5lzpB6bTKNB2ZI6AQ3XKUHioE0=";
   };
 
-  dubLock = ./dub-lock.json;
+  dubDeps = importDubLock {
+    inherit pname version;
+    lock = ./dub-lock.json;
+  };
+
+  nativeBuildInputs = [
+    dubSetupHook
+    dubBuildHook
+    ldc
+  ];
 
   buildInputs = [
     ncurses

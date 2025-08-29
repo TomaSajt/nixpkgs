@@ -1,8 +1,12 @@
 {
   lib,
-  buildDubPackage,
+  stdenv,
   fetchFromGitHub,
   writeShellScriptBin,
+
+  dubSetupHook,
+  dubBuildHook,
+  ldc,
 
   cmake,
   gettext,
@@ -34,14 +38,17 @@ let
     pname
     appname
     version
-    dubLock
     meta
     ;
 in
-buildDubPackage (
+stdenv.mkDerivation (
   builderArgs
   // {
     nativeBuildInputs = [
+      dubSetupHook
+      dubBuildHook
+      ldc
+
       cmake # used for building `i2d-imgui`
       gettext # used when generating translations
       copyDesktopItems
@@ -63,28 +70,13 @@ buildDubPackage (
 
     dontUseCmakeConfigure = true;
 
-    # these deps are not listed inside `dub.sdl`, so they didn't get auto-generated
-    # these are used for generating version info when building
-    dubLock = lib.recursiveUpdate (lib.importJSON dubLock) {
-      dependencies = {
-        gitver = {
-          version = "1.6.1";
-          sha256 = "sha256-NCyFik4FbD7yMLd5zwf/w4cHwhzLhIRSVw1bWo/CZB4=";
-        };
-        semver = {
-          version = "0.3.2";
-          sha256 = "sha256-l6c9hniUd5xNsJepq8x30e0JTjmXs4pYUmv4ws+Nrn4=";
-        };
-      };
-    };
-
     postConfigure = ''
       cimgui_dir=("$DUB_HOME"/packages/i2d-imgui/*/i2d-imgui)
 
       # `i2d-imgui` isn't able to find SDL2 by default due to it being written in lower case
       # this is only an issue when compiling statically (session)
       substituteInPlace "$cimgui_dir/dub.json" \
-          --replace-fail '"sdl2"' '"SDL2"'
+        --replace-fail '"sdl2"' '"SDL2"'
 
       # The `i2d-cimgui` dub dependency fetched inside the auto-generated `*-deps.nix` file
       # which doesn't know that it's actually a git repo, so it doesn't fetch its submodules.
@@ -94,8 +86,8 @@ buildDubPackage (
 
       # Disable the original cmake fetcher script
       substituteInPlace "$cimgui_dir/deps/CMakeLists.txt" \
-          --replace-fail "PullSubmodules(" "# PullSubmodules(" \
-          --replace-fail  "\''${cimgui_SUBMOD_DIR}" "cimgui"
+        --replace-fail "PullSubmodules(" "# PullSubmodules(" \
+        --replace-fail  "\''${cimgui_SUBMOD_DIR}" "cimgui"
     '';
 
     preBuild = ''
@@ -103,7 +95,7 @@ buildDubPackage (
       . gentl.sh
 
       # Use the fake git to generate version info
-      dub build --skip-registry=all --compiler=ldc2 --build=release --config=update-version
+      dub build --skip-registry=all --build=release --config=update-version
     '';
 
     # Use the "barebones" configuration so that we don't include the mascot and icon files in out build
