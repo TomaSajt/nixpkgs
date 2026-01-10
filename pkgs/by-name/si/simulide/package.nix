@@ -47,6 +47,16 @@ let
         inherit rev;
       };
     };
+    "2.0.0" = rec {
+      release = "unstable-2026-01-07";
+      rev = "38c1259b3164ea9d1cd25456821f5a6b50472aa6";
+      src = fetchFromGitHub {
+        owner = "eeTools";
+        repo = "SimulIDE-dev";
+        hash = "sha256-BzBCEdiV4kH1EQmeu6BiY+7lsJq/ORVv6CC7o6OZpCA=";
+        inherit rev;
+      };
+    };
   };
 in
 
@@ -87,15 +97,14 @@ stdenv.mkDerivation {
       -e "s|^RELEASE = .*$|RELEASE = ${release'}|" \
       -e "s|^REV_NO = .*$|REV_NO = ${rev}|" \
       -e "s|^BUILD_DATE = .*$|BUILD_DATE = ??????|" \
-      -e "/QMAKE_CC/d" \
-      -e "/QMAKE_CXX/d" \
-      -e "/QMAKE_LINK/d"
-
-    ${lib.optionalString (lib.versionOlder versionNum "1.0.0") ''
-      # GCC 13 needs the <cstdint> header explicitly included
-      sed -i src/gpsim/value.h -e '1i #include <cstdint>'
-      sed -i src/gpsim/modules/watchdog.h -e '1i #include <cstdint>'
-    ''}
+      -e "/QMAKE_CC\s*=/d" \
+      -e "/QMAKE_CXX\s*=/d" \
+      -e "/QMAKE_LINK\s*=/d"
+  ''
+  + lib.optionalString (lib.versionOlder versionNum "1.0.0") ''
+    # GCC 13 needs the <cstdint> header explicitly included
+    sed -i src/gpsim/value.h -e '1i #include <cstdint>'
+    sed -i src/gpsim/modules/watchdog.h -e '1i #include <cstdint>'
   '';
 
   preConfigure = ''
@@ -118,32 +127,39 @@ stdenv.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-
-    ${lib.optionalString stdenv.hostPlatform.isLinux ''
-      install -Dm644 ../resources/simulide.desktop $out/share/applications/simulide.desktop
-      install -Dm644 ../${iconPath} $out/share/icons/hicolor/256x256/apps/simulide.png
-    ''}
-
+  ''
+  + lib.optionalString stdenv.hostPlatform.isLinux ''
+    install -Dm644 ../resources/simulide.desktop $out/share/applications/simulide.desktop
+    install -Dm644 ../${iconPath} $out/share/icons/hicolor/256x256/apps/simulide.png
+  ''
+  + ''
     pushd executables/SimulIDE_*
-    ${
-      if stdenv.hostPlatform.isDarwin then
-        ''
-          mkdir -p $out/Applications
-          cp -r simulide.app $out/Applications
-        ''
-      else if lib.versionOlder versionNum "1.0.0" then
-        ''
-          mkdir -p $out/share/simulide $out/bin
-          cp -r share/simulide/* $out/share/simulide
-          cp bin/simulide $out/bin/simulide
-        ''
-      else
-        ''
-          mkdir -p $out/share/simulide $out/bin
-          cp -r data examples $out/share/simulide
-          cp simulide $out/bin/simulide
-        ''
-    }
+  ''
+  + (
+    if stdenv.hostPlatform.isDarwin then
+      ''
+        mkdir -p $out/Applications
+        cp -r simulide.app $out/Applications
+      ''
+    else if lib.versionOlder versionNum "1.0.0" then
+      ''
+        mkdir -p $out/share/simulide $out/bin
+        cp -r share/simulide/* $out/share/simulide
+        cp bin/simulide $out/bin/simulide
+      ''
+    else if lib.versionOlder versionNum "2.0.0" then
+      ''
+        mkdir -p $out/share/simulide $out/bin
+        cp -r data examples $out/share/simulide
+        cp simulide $out/bin/simulide
+      ''
+    else
+      ''
+        mkdir -p $out/bin
+        cp simulide $out/bin/simulide
+      ''
+  )
+  + ''
     popd
 
     runHook postInstall
