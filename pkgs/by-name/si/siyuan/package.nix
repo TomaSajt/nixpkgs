@@ -21,18 +21,11 @@ let
   platformIds = {
     "x86_64-linux" = "linux";
     "aarch64-linux" = "linux-arm64";
+    "x86_64-darwin" = "darwin";
+    "aarch64-darwin" = "darwin-arm64";
   };
 
   platformId = platformIds.${stdenv.system} or (throw "Unsupported platform: ${stdenv.system}");
-
-  desktopEntry = makeDesktopItem {
-    name = "siyuan";
-    desktopName = "SiYuan";
-    comment = "Refactor your thinking";
-    icon = "siyuan";
-    exec = "siyuan %U";
-    categories = [ "Utility" ];
-  };
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "siyuan";
@@ -63,7 +56,7 @@ stdenv.mkDerivation (finalAttrs: {
     modPostBuild = ''
       chmod +w vendor/github.com/88250/gulu
       substituteInPlace vendor/github.com/88250/gulu/file.go \
-          --replace-fail "os.Chmod(dest, sourceinfo.Mode())" "os.Chmod(dest, 0644)"
+        --replace-fail "os.Chmod(dest, sourceinfo.Mode())" "os.Chmod(dest, 0644)"
     '';
 
     # Set flags and tags as per upstream's Dockerfile
@@ -111,6 +104,12 @@ stdenv.mkDerivation (finalAttrs: {
     # remove prebuilt pandoc archives
     rm -r pandoc
 
+    # these files are not present in the repo, so we'll just not use them for now
+    substituteInPlace electron-builder-darwin.yml \
+      --replace-fail 'provisioningProfile: "../../SiYuan.provisionprofile"' "" \
+      --replace-fail 'entitlements: "../../entitlements.mas.plist"' "" \
+      --replace-fail 'entitlementsInherit: "../../entitlements.mas.plist"' ""
+
     # link kernel into the correct starting place so that electron-builder can copy it to it's final location
     mkdir kernel-${platformId}
     ln -s ${finalAttrs.kernel}/bin/kernel kernel-${platformId}/SiYuan-Kernel
@@ -121,35 +120,56 @@ stdenv.mkDerivation (finalAttrs: {
 
     pnpm build
 
+    cp -r ${electron.dist} electron-dist
+    chmod -R u+w electron-dist
+
     npm exec electron-builder -- \
-        --dir \
-        --config electron-builder-${platformId}.yml \
-        -c.electronDist=${electron.dist} \
-        -c.electronVersion=${electron.version}
+      --dir \
+      --config electron-builder-${platformId}.yml \
+      -c.electronDist=electron-dist \
+      -c.electronVersion=${electron.version} \
+      -c.mac.identity=null
 
     runHook postBuild
   '';
 
   installPhase = ''
     runHook preInstall
+  ''
+  + lib.optionalString stdenv.hostPlatform.isLinux ''
 
     mkdir -p $out/share/siyuan
     cp -r build/*-unpacked/{locales,resources{,.pak}} $out/share/siyuan
 
     makeWrapper ${lib.getExe electron} $out/bin/siyuan \
-        --chdir $out/share/siyuan/resources \
-        --add-flags $out/share/siyuan/resources/app \
-        --set ELECTRON_FORCE_IS_PACKAGED 1 \
-        --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
-        --suffix PATH : ${lib.makeBinPath [ xdg-utils ]} \
-        --inherit-argv0
+      --chdir $out/share/siyuan/resources \
+      --add-flags $out/share/siyuan/resources/app \
+      --set ELECTRON_FORCE_IS_PACKAGED 1 \
+      --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
+      --suffix PATH : ${lib.makeBinPath [ xdg-utils ]} \
+      --inherit-argv0
 
     install -Dm644 src/assets/icon.svg $out/share/icons/hicolor/scalable/apps/siyuan.svg
-
+  ''
+  + lib.optionalString stdenv.hostPlatform.isDarwin ''
+    mkdir -p $out/Applications
+    cp -r build/mac*/SiYuan.app $out/Applications
+    makeWrapper $out/Applications/SiYuan.app/Contents/MacOS/SiYuan $out/bin/siyuan
+  ''
+  + ''
     runHook postInstall
   '';
 
-  desktopItems = [ desktopEntry ];
+  desktopItems = [
+    (makeDesktopItem {
+      name = "siyuan";
+      desktopName = "SiYuan";
+      comment = "Refactor your thinking";
+      icon = "siyuan";
+      exec = "siyuan %U";
+      categories = [ "Utility" ];
+    })
+  ];
 
   passthru = {
     inherit (finalAttrs.kernel) goModules; # this tricks nix-update into also updating the kernel goModules FOD
