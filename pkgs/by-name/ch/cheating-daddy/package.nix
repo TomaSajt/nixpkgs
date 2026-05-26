@@ -6,6 +6,7 @@
   makeWrapper,
   python3,
   zip,
+  mkElectronDist,
   electron,
   makeDesktopItem,
   nix-update-script,
@@ -40,13 +41,8 @@ buildNpmPackage (finalAttrs: {
   makeCacheWritable = true;
 
   preBuild = ''
-    cp --recursive --no-preserve=mode ${electron.dist} electron-dist
-    pushd electron-dist
-    zip -0Xqr ../electron.zip .
-    popd
-    rm --recursive electron-dist
     substituteInPlace node_modules/@electron/packager/dist/packager.js \
-      --replace-fail "await this.getElectronZipPath(downloadOpts)" "\"$(pwd)/electron.zip\""
+      --replace-fail "await this.getElectronZipPath(downloadOpts)" "'${(mkElectronDist electron).zip}'"
   '';
 
   buildPhase = ''

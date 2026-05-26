@@ -5329,6 +5329,8 @@ with pkgs;
   electron-bin = electron_41-bin;
   electron-chromedriver = electron-chromedriver_41;
 
+  mkElectronDist = callPackage ../development/tools/electron/mk-electron-dist.nix { };
+
   autoconf = callPackage ../development/tools/misc/autoconf { };
   autoconf269 = callPackage ../development/tools/misc/autoconf/2.69.nix { };
 

@@ -11,6 +11,7 @@
   yarn-berry_4,
   zip,
 
+  mkElectronDist,
   electron,
   commandLineArgs ? "",
 
@@ -78,20 +79,11 @@ stdenv.mkDerivation (finalAttrs: {
   env.YARN_ENABLE_SCRIPTS = "0";
 
   buildPhase = ''
-    runHook preBuild
-
-    cp -r ${electron.dist} electron-dist
-    chmod -R u+w electron-dist
-
-    pushd electron-dist
-    zip -0Xqr ../electron.zip .
-    popd
-
-    rm -r electron-dist
+  runHook preBuild
 
     # force @electron/packager to use our electron instead of downloading it
     substituteInPlace node_modules/@electron/packager/dist/packager.js \
-      --replace-fail 'await this.getElectronZipPath(downloadOpts)' '"electron.zip"'
+      --replace-fail 'await this.getElectronZipPath(downloadOpts)' '"${(mkElectronDist electron).zip}"'
 
     yarn run package
 

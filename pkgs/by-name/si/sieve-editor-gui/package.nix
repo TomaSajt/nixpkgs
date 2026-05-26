@@ -4,29 +4,10 @@
   buildNpmPackage,
   fetchFromGitHub,
   electron,
+  mkElectronDist,
   makeDesktopItem,
   copyDesktopItems,
-  runCommand,
-  zip,
 }:
-
-let
-  electronArch = if stdenv.hostPlatform.isAarch64 then "arm64" else "x64";
-  electronZip =
-    runCommand "electronZip"
-      {
-        nativeBuildInputs = [ zip ];
-      }
-      ''
-        mkdir $out
-
-        cp -r ${electron.dist} electron-dist
-        chmod -R u+w electron-dist
-
-        cd electron-dist
-        zip -0Xqr $out/electron-v${electron.version}-darwin-${electronArch}.zip .
-      '';
-in
 
 buildNpmPackage {
   pname = "sieve-editor-gui";
@@ -60,7 +41,7 @@ buildNpmPackage {
   ''
   + lib.optionalString stdenv.hostPlatform.isDarwin ''
     npx electron-packager ./build/electron/resources \
-      --electron-zip-dir ${electronZip} \
+      --electron-zip-dir ${(mkElectronDist electron).zipDir} \
       --electron-version ${electron.version} \
       --icon src/common/icons/mac.icns
 

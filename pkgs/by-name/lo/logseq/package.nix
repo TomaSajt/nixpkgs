@@ -23,6 +23,7 @@
   zip,
 
   electron_39,
+  mkElectronDist,
   git,
 }:
 
@@ -226,17 +227,8 @@ stdenv.mkDerivation (finalAttrs: {
 
     popd
 
-    cp -r ${electron.dist} electron-dist
-    chmod -R u+w electron-dist
-
-    pushd electron-dist
-    zip -0Xqr ../electron.zip .
-    popd
-
-    rm -r electron-dist
-
     substituteInPlace static/node_modules/@electron/packager/dist/packager.js \
-      --replace-fail "await this.getElectronZipPath(downloadOpts)" "\"$(pwd)/electron.zip\""
+      --replace-fail "await this.getElectronZipPath(downloadOpts)" '"${(mkElectronDist electron).zip}"'
 
     cp -r static/node_modules resources/node_modules
   '';

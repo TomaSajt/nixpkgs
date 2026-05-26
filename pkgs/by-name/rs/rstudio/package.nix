@@ -26,6 +26,7 @@
   zip,
 
   boost190,
+  mkElectronDist,
   electron_41,
   fontconfig,
   gnumake,
@@ -308,21 +309,11 @@ stdenv.mkDerivation (finalAttrs: {
     substituteInPlace node_modules/@electron-forge/core-utils/dist/electron-version.js \
       --replace-fail "return version" "return '${electron.version}'"
 
-    ### create the electron archive to be used by electron-packager
-    cp -r ${electron.dist} electron-dist
-    chmod -R u+w electron-dist
-
-    pushd electron-dist
-    zip -0Xqr ../electron.zip .
-    popd
-
-    rm -r electron-dist
-
     # force @electron/packager to use our electron instead of downloading it
     substituteInPlace \
       node_modules/@electron/packager/dist/packager.js \
       node_modules/@electron-forge/core/node_modules/@electron/packager/dist/packager.js \
-      --replace-fail "await this.getElectronZipPath(downloadOpts)" "'$(pwd)/electron.zip'"
+      --replace-fail "await this.getElectronZipPath(downloadOpts)" "'${(mkElectronDist electron).zip}'"
 
     # now that we patched everything, we still have to run the scripts we ignored with --ignore-scripts
     npm rebuild

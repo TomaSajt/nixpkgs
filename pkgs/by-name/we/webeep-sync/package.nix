@@ -6,6 +6,7 @@
   pnpmConfigHook,
   writableTmpDirAsHomeHook,
   makeWrapper,
+  mkElectronDist,
   electron,
   nodejs,
   zip,
@@ -52,19 +53,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   patches = [ ./workspace.patch ]; # TODO: waiting for PR https://github.com/toto04/webeep-sync/pull/138
 
   preBuild = ''
-    # create the electron archive to be used by electron-packager
-    cp -r ${electron.dist} electron-dist
-    chmod -R u+w electron-dist
-
-    pushd electron-dist
-    zip -0Xqr ../electron.zip .
-    popd
-
-    rm -r electron-dist
-
     # force @electron/packager to use our electron instead of downloading it
     substituteInPlace node_modules/.pnpm/@electron+packager@*/node_modules/@electron/packager/dist/packager.js \
-      --replace-fail "await this.getElectronZipPath(downloadOpts)" "'$(pwd)/electron.zip'"
+      --replace-fail "await this.getElectronZipPath(downloadOpts)" "'${(mkElectronDist electron).zip}'"
   '';
 
   buildPhase = ''

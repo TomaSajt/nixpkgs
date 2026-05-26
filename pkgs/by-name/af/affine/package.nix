@@ -5,6 +5,7 @@
   fetchFromGitHub,
   rustPlatform,
   electron,
+  mkElectronDist,
   nodejs_22,
   yarn-berry_4,
   cacert,
@@ -15,6 +16,7 @@
   zip,
   rsync,
   jq,
+  moreutils,
   copyDesktopItems,
   makeWrapper,
   llvmPackages,
@@ -26,22 +28,11 @@
 }:
 let
   hostPlatform = stdenvNoCC.hostPlatform;
-  nodePlatform = hostPlatform.node.platform;
   nodeArch = hostPlatform.node.arch;
   nodejs = nodejs_22;
   yarn-berry = yarn-berry_4.override { inherit nodejs; };
   productName = if buildType != "stable" then "AFFiNE-${buildType}" else "AFFiNE";
   binName = lib.toLower productName;
-  electron-dist-zip = stdenvNoCC.mkDerivation {
-    pname = "electron-dist-zip";
-    version = electron.version;
-    src = electron.dist;
-    nativeBuildInputs = [ zip ];
-    buildPhase = ''
-      zip --recurse-paths - . > $out
-    '';
-    dontInstall = true;
-  };
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = binName;
@@ -127,6 +118,7 @@ stdenv.mkDerivation (finalAttrs: {
     findutils
     zip
     jq
+    moreutils
     rsync
     writableTmpDirAsHomeHook
   ]
@@ -168,15 +160,10 @@ stdenv.mkDerivation (finalAttrs: {
     yarn config set enableGlobalCache false
     yarn config set cacheFolder $yarnOfflineCache/cache
 
-    # electron config
-    ELECTRON_VERSION_IN_LOCKFILE=$(yarn why electron --json | tail --lines 1 | jq --raw-output '.children | to_entries | first | .key ' | cut -d : -f 2)
-    export ELECTRON_FORGE_ELECTRON_ZIP_DIR=$PWD/.electron_zip_dir
-    mkdir -p $ELECTRON_FORGE_ELECTRON_ZIP_DIR
-    cp ${electron-dist-zip} $ELECTRON_FORGE_ELECTRON_ZIP_DIR/electron-v$ELECTRON_VERSION_IN_LOCKFILE-${nodePlatform}-${nodeArch}.zip
     export ELECTRON_SKIP_BINARY_DOWNLOAD=1
 
     runHook postConfigure
-  '';
+    '';
 
   buildPhase = ''
     runHook preBuild
@@ -191,6 +178,11 @@ stdenv.mkDerivation (finalAttrs: {
     yarn config set nmHoistingLimits workspaces
     find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +
     yarn install
+
+    export ELECTRON_FORGE_ELECTRON_ZIP_DIR=${(mkElectronDist electron).zipDir}
+    jq '.devDependencies.electron = "${electron.version}"' ./packages/frontend/apps/electron/package.json \
+      | sponge packages/frontend/apps/electron/package.json
+
     BUILD_TYPE=${buildType} SKIP_WEB_BUILD=1 SKIP_BUNDLE=1 HOIST_NODE_MODULES=1 yarn affine @affine/electron make
 
     runHook postBuild
