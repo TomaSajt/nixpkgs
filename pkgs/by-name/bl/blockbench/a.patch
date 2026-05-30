@@ -1,0 +1,11 @@
+diff --git a/electron/main.js b/electron/main.js
+index e4e2b33..5463d1e 100644
+--- a/electron/main.js
++++ b/electron/main.js
+@@ -1,3 +1,6 @@
++console.log("DEBUG: ")
++console.log(process.argv)
++
+ import {app, BrowserWindow, Menu, ipcMain, shell} from 'electron'
+ import path from 'path'
+ import url from 'url'

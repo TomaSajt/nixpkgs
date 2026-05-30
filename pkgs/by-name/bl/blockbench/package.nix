@@ -26,6 +26,7 @@ buildNpmPackage rec {
     # but Blockbench assumes paths at the and og the argv are files to be opened
     # This patch disables trying to open the app.asar file
     ./dont-assume-opening-app-asar.patch
+    ./a.patch
   ];
 
   nativeBuildInputs = [
