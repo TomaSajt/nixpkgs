@@ -8,7 +8,7 @@ index f3fcb25..a92a884 100644
  		let path = electron.process.argv.last();
 -		load(path);
 +		if (!path.endsWith("app.asar")) {
-+			load(path);
++			console.log("desktop.js: ", electron.process.argv); load(path);
 +		}
  	}
  }

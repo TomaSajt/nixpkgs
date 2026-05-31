@@ -8,6 +8,7 @@
   copyDesktopItems,
   makeDesktopItem,
   electron,
+  electronWrapHook,
 }:
 
 buildNpmPackage rec {
@@ -25,12 +26,13 @@ buildNpmPackage rec {
     # On linux we're running Blockbench by giving the path to the app.asar file to the electron executable,
     # but Blockbench assumes paths at the and og the argv are files to be opened
     # This patch disables trying to open the app.asar file
-    ./dont-assume-opening-app-asar.patch
+    #./dont-assume-opening-app-asar.patch
     ./a.patch
   ];
 
   nativeBuildInputs = [
     makeWrapper
+    electronWrapHook
   ]
   ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [
     imagemagick # for icon resizing
@@ -77,11 +79,6 @@ buildNpmPackage rec {
       mkdir -p $out/share/icons/hicolor/"$size"x"$size"/apps
       magick icon.png -resize "$size"x"$size" $out/share/icons/hicolor/"$size"x"$size"/apps/blockbench.png
     done
-
-    makeWrapper ${lib.getExe electron} $out/bin/blockbench \
-      --add-flags $out/share/blockbench/resources/app.asar \
-      --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
-      --inherit-argv0
   ''
   + ''
     runHook postInstall
