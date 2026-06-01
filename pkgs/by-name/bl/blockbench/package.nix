@@ -9,6 +9,11 @@
   makeDesktopItem,
   electron,
   electronWrapHook,
+  gsettings-desktop-schemas,
+  glib,
+  gtk3,
+  gtk4,
+  wrapGAppsHook3,
 }:
 
 buildNpmPackage rec {
@@ -31,6 +36,7 @@ buildNpmPackage rec {
   ];
 
   nativeBuildInputs = [
+    wrapGAppsHook3
     makeWrapper
     electronWrapHook
   ]
@@ -38,6 +44,16 @@ buildNpmPackage rec {
     imagemagick # for icon resizing
     copyDesktopItems
   ];
+
+  buildInputs = [
+    # needed for GSETTINGS_SCHEMAS_PATH
+    gsettings-desktop-schemas
+    glib
+    gtk3
+    gtk4
+  ];
+
+  dontWrapGApps = true;
 
   npmDepsHash = "sha256-RmUUdHSVrZYc4F1Qtkbvn/2oKspM/3SnCuT3McKlMn0=";
   makeCacheWritable = true;
@@ -72,8 +88,12 @@ buildNpmPackage rec {
     makeWrapper $out/Applications/Blockbench.app/Contents/MacOS/Blockbench $out/bin/blockbench
   ''
   + lib.optionalString (!stdenv.hostPlatform.isDarwin) ''
-    mkdir -p $out/share/blockbench
+    mkdir -p $out/share/blockbench "$out/opt/blockbench"
     cp -r dist-electron/*-unpacked/{locales,resources{,.pak}} $out/share/blockbench
+    electronWrapPath="$out/share/blockbench/resources/app.asar"
+    makeWrapper ${lib.getExe electron} "$out/bin/blockbench-manual" --add-flag "$out/share/blockbench/resources/app.asar"
+
+    cp -r dist-electron/*-unpacked/. "$out/opt/blockbench"
 
     for size in 16 32 48 64 128 256 512; do
       mkdir -p $out/share/icons/hicolor/"$size"x"$size"/apps
@@ -82,6 +102,13 @@ buildNpmPackage rec {
   ''
   + ''
     runHook postInstall
+  '';
+
+  dontPatchELF = true;
+
+  postFixup = ''
+    makeWrapper "$out/opt/blockbench/blockbench" "$out/bin/blockbench-intended" \
+      "''${gappsWrapperArgs[@]}"
   '';
 
   # based on desktop file found in the published AppImage archive
