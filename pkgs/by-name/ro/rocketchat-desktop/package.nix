@@ -14,6 +14,7 @@
   makeDesktopItem,
   makeWrapper,
   nix-update-script,
+  electronWrapHook,
 }:
 let
   yarn-berry = yarn-berry_4;
@@ -57,6 +58,9 @@ stdenv.mkDerivation (finalAttrs: {
     # install phase helpers
     copyDesktopItems
     makeWrapper
+
+
+    (electronWrapHook.override { inherit electron; })
   ];
 
   buildInputs = [

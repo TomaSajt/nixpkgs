@@ -38,7 +38,7 @@ buildNpmPackage rec {
   nativeBuildInputs = [
     wrapGAppsHook3
     makeWrapper
-    electronWrapHook
+    (electronWrapHook.override { inherit electron; })
   ]
   ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [
     imagemagick # for icon resizing

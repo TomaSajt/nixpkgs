@@ -16,6 +16,7 @@
 
   electron,
   steam-run-free,
+  electronWrapHook,
 }:
 
 buildNpmPackage (finalAttrs: {
@@ -31,8 +32,8 @@ buildNpmPackage (finalAttrs: {
 
   postPatch = ''
     # don't search for resources in electron's resource directory, but our own
-    substituteInPlace src/main/services/utils.service.ts \
-      --replace-fail "process.resourcesPath" "'$out/share/bs-manager/resources'"
+    #substituteInPlace src/main/services/utils.service.ts \
+    #  --replace-fail "process.resourcesPath" "'$out/share/bs-manager/resources'"
 
     # replace vendored DepotDownloader with our own
     rm assets/scripts/DepotDownloader
@@ -58,6 +59,7 @@ buildNpmPackage (finalAttrs: {
     autoPatchelfHook # for some prebuilt node deps: query-process @resvg/resvg-js
     copyDesktopItems
     makeWrapper
+    (electronWrapHook.override { inherit electron; })
   ];
 
   buildInputs = [
@@ -99,12 +101,9 @@ buildNpmPackage (finalAttrs: {
     mkdir -p $out/share/bs-manager
     cp -r release/build/*-unpacked/{locales,resources{,.pak}} $out/share/bs-manager
 
-    makeWrapper ${lib.getExe electron} $out/bin/bs-manager \
-      --set-default ELECTRON_FORCE_IS_PACKAGED 1 \
-      --add-flags $out/share/bs-manager/resources/app.asar \
-      --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}" \
-      --prefix PATH : ${lib.makeBinPath [ steam-run-free ]} \
-      --inherit-argv0
+    electronWrapperArgs=(
+      --prefix PATH : ${lib.makeBinPath [ steam-run-free ]}
+    )
 
     runHook postInstall
   '';

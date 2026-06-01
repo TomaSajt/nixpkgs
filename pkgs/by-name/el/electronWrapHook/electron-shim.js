@@ -20,15 +20,16 @@ const appPath = path.resolve(getEnvOrThrow("ELECTRON_SHIM_APP_PATH"));
 const wrapperPath = path.resolve(getEnvOrThrow("ELECTRON_SHIM_WRAPPER_PATH"));
 const resourcesPath = path.dirname(appPath);
 
-if (!process.argv[1].endsWith("electron-shim.js")) {
-  throw new Error("argv[1] was not electron-shim.js");
+const shimInd = process.argv.findIndex((a) => a.endsWith("electron-shim.js"));
+if (shimInd === -1) {
+  throw new Error("electron-shim.js not found in argv");
 }
 
 // Now we modify process.argv:
 // original: ["path/to/electron", "path/to/electron-shim.js", "first-arg", "second-arg", ...]
 // modified: ["path/to/wrapper", "first-arg", "second-arg", ...]
 process.argv[0] = wrapperPath;
-process.argv.splice(1, 1); // delete index 1 element
+process.argv.splice(shimInd, 1); // delete index shim element
 
 process.execPath = wrapperPath;
 app.setPath("exe", wrapperPath); // This also makes app.isPackaged give true as a result
@@ -47,7 +48,7 @@ function forceWriteProcessProp(prop, val) {
 
 // just setting process.resourcesPath doesn't work, as it is handled by C++
 forceWriteProcessProp("resourcesPath", resourcesPath);
-forceWriteProcessProp("helperExecPath", wrapperPath); // does this break anything?
+// forceWriteProcessProp("helperExecPath", wrapperPath); // does this break anything?
 // forceWriteProcessProp("argv0", wrapperPath); // not allowed :(
 // forceWriteProcessProp("defaultApp", false); // not allowed :(
 

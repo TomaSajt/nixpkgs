@@ -26,8 +26,9 @@ electronWrap() {
   # Concat user args to the flags array
   concatTo electronWrapperArgsArray electronWrapperArgs
 
+  # TODO: revert append-flag
   makeWrapper "@electron_exe@" "$wrapperPath" \
-    --add-flag "@shim_js@" \
+    --append-flag "@shim_js@" \
     --set ELECTRON_SHIM_APP_PATH "$pathToWrap" \
     --set ELECTRON_SHIM_WRAPPER_PATH "$wrapperPath" \
     "${electronWrapperArgsArray[@]}"
