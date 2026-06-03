@@ -1007,17 +1007,33 @@ let
         runHook postBuild
       '';
 
-    postFixup = ''
-      # Make sure that libGLESv2 and libvulkan are found by dlopen in both chromium binary and ANGLE libGLESv2.so.
-      # libpci (from pciutils) is needed by dlopen in angle/src/gpu_info_util/SystemInfo_libpci.cpp
+    # We patch the executables via patchelf to account for libraries loaded via dlopen
+    # We have to make sure to use --add-needed so that the fixupPhase doesn't shrink the rpaths
+    preFixup = ''
       for chromiumBinary in "$libExecPath/$packageName" "$libExecPath/libGLESv2.so"; do
-        patchelf --set-rpath "${
-          lib.makeLibraryPath [
-            libGL
-            vulkan-loader
-            pciutils
-          ]
-        }:$(patchelf --print-rpath "$chromiumBinary")" "$chromiumBinary"
+        patchelf "$chromiumBinary" --print-rpath
+      done
+
+      # dlopen is used for loading libEGL.so and libGLESv2.so in ui/ozone/common/egl_util.cc
+      # It can either load the ANGLE implementation next to the main executable
+      # or it can load the system libraries from the rpath
+      patchelf "$libExecPath/$packageName" \
+        --add-needed libEGL.so \
+        --add-needed libGLESv2.so \
+        --add-rpath "${lib.makeLibraryPath [ libGL ]}"
+
+      # libvulkan.so and libpci.so are loaded via dlopen in both the Chromium binary and the ANGLE libGLESv2.so
+      # libpci.so is loaded in angle/src/gpu_info_util/SystemInfo_libpci.cpp
+      for chromiumBinary in "$libExecPath/$packageName" "$libExecPath/libGLESv2.so"; do
+        patchelf "$chromiumBinary" \
+          --add-needed libvulkan.so \
+          --add-needed libpci.so \
+          --add-rpath "${
+            lib.makeLibraryPath [
+              vulkan-loader
+              pciutils
+            ]
+          }"
       done
 
       # replace bundled vulkan-loader
