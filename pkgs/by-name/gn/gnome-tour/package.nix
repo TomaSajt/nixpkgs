@@ -29,7 +29,7 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-bOEYcDGjZb8iagzRRvF7R3Pn7UUIg/fNUC9ez0MrUyU=";
   };
 
-  cargoVendorDir = "vendor";
+  cargoVendorDir = "dummy";
 
   depsBuildBuild = [
     pkg-config

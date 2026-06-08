@@ -1,41 +1,41 @@
 cargoSetupPostUnpackHook() {
     echo "Executing cargoSetupPostUnpackHook"
 
+    # TODO: Maybe remove as it's barely used.
     eval "${cargoDepsHook-}"
 
-    # Some cargo builds include build hooks that modify their own vendor
-    # dependencies. This copies the vendor directory into the build tree and makes
-    # it writable. If we're using a tarball, the unpackFile hook already handles
-    # this for us automatically.
+    # Some cargo builds need to modify their own vendor dependencies.
+    # This copies the vendor directory into the build tree and makes it writable.
     if [ -z $cargoVendorDir ]; then
-        if [ -d "$cargoDeps" ]; then
-            local dest=$(stripHash "$cargoDeps")
-            cp -Lr --reflink=auto -- "$cargoDeps" "$dest"
-            chmod -R +644 -- "$dest"
-        else
-            unpackFile "$cargoDeps"
+        if [ ! -d "$cargoDeps" ]; then
+            echo "ERROR: cargoSetupHook only supports unpacked directories for cargoDeps"
+            echo "Hint: Use the official fetchCargoVendor fetcher"
+            exit 1
         fi
-        export cargoDepsCopy="$(realpath "$(stripHash $cargoDeps)")"
+
+        cargoDepsCopy="$NIX_BUILD_TOP/$(stripHash "$cargoDeps")"
+        cp -Lr --reflink=auto -- "$cargoDeps" "$cargoDepsCopy"
+        chmod -R +644 -- "$cargoDepsCopy"
+
+        # Move .cargo directory to the top of the build directory
+        # so that cargo can detect it from anywhere.
+        mv "$cargoDepsCopy/.cargo" "$NIX_BUILD_TOP/"
     else
-        cargoDepsCopy="$(realpath "$(pwd)/$sourceRoot/${cargoRoot:+$cargoRoot/}${cargoVendorDir}")"
+        cargoDepsCopy="$NIX_BUILD_TOP/$sourceRoot/${cargoRoot:+$cargoRoot/}${cargoVendorDir}"
+        mkdir -p "$NIX_BUILD_TOP/.cargo"
+        # TODO: In most cases the package already has its own .cargo/config.toml
+        #       that correctly sets the used vendor directory.
+        #       In these cases doing this essentially affects nothing.
+        #       You could even set cargoVendorDir to anything.
+        cat @defaultConfig@ > "$NIX_BUILD_TOP/.cargo/config.toml"
     fi
 
-    if [ ! -d .cargo ]; then
-        mkdir .cargo
-    fi
-
-    config="$cargoDepsCopy/.cargo/config.toml"
-    if [[ ! -e $config ]]; then
-      config=@defaultConfig@
-    fi;
-
-    tmp_config=$(mktemp)
-    substitute $config $tmp_config \
+    substituteInPlace "$NIX_BUILD_TOP/.cargo/config.toml" \
       --subst-var-by vendor "$cargoDepsCopy"
-    cat ${tmp_config} >> .cargo/config.toml
 
-    cat >> .cargo/config.toml <<'EOF'
-    @cargoConfig@
+    cat >> "$NIX_BUILD_TOP/.cargo/config.toml" <<'EOF'
+# The following section was added by cargoSetupHook
+@cargoConfig@
 EOF
 
     echo "Finished cargoSetupPostUnpackHook"

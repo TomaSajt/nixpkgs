@@ -33,7 +33,7 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-7J2vmIPrkDMJEbtR5rae7YydvdVDjoZK3JDuVaX+nu0=";
   };
 
-  cargoVendorDir = "vendor";
+  cargoVendorDir = "dummy";
 
   nativeBuildInputs = [
     cargo

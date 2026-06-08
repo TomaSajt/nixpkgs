@@ -13,7 +13,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     sha256 = "sha256-lPw55QcGMvY2YRYJGq4WC0fPbKiika4NF55tlb+i6So=";
   };
 
-  cargoVendorDir = "vendor";
+  cargoVendorDir = "dummy";
   doCheck = false;
 
   meta = {

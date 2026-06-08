@@ -81,8 +81,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
   env.OPENSSL_NO_VENDOR = true;
 
   dontUpdateAutotoolsGnuConfigScripts = true; # will modify vendor dir, which cargo doesn't allow
-  cargoVendorDir = "vendor"; # everything is vendored in-tree
-  dontCargoSetupPostUnpack = true;
+  cargoVendorDir = "dummy"; # everything is vendored in-tree
+  dontCargoSetupPostUnpack = true; # TODO: is this needed?
 
   desktopItems = lib.singleton (makeDesktopItem {
     name = "com.moulberry.pandoralauncher";

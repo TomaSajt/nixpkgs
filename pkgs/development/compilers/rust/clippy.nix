@@ -12,7 +12,7 @@ rustPlatform.buildRustPackage {
   separateDebugInfo = true;
 
   # the rust source tarball already has all the dependencies vendored, no need to fetch them again
-  cargoVendorDir = "vendor";
+  cargoVendorDir = "dummy";
   buildAndTestSubdir = "src/tools/clippy";
 
   # changes hash of vendor directory otherwise

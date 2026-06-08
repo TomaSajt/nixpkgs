@@ -18,7 +18,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     hash = "sha256-ejFo+BYoXf889G/iLuKITwY3ephkEMS6nLtfi3PozHQ=";
   };
 
-  cargoVendorDir = "vendor";
+  cargoVendorDir = "dummy";
 
   nativeBuildInputs = [ installShellFiles ];
 
