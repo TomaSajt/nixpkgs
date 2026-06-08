@@ -214,6 +214,13 @@ stdenv.mkDerivation (
 
     preConfigure = ''
       ${lib.optionalString (withOtel || withSystemdJournal) ''
+        # cargoSetupPostUnpackHook puts its results into the directory it's being called from
+        # so this does not overrdie the config generated for the main cargoDeps
+        pushd "$cargoRoot/jf"
+        cargoDeps="$cargoDepsNdJf" cargoSetupPostUnpackHook
+        popd
+        cargoRoot="$cargoRoot/jf" cargoSetupPostPatchHook
+
         export CMAKE_PREFIX_PATH="${corrosion}:$CMAKE_PREFIX_PATH"
       ''}
 
@@ -354,26 +361,21 @@ stdenv.mkDerivation (
     };
   }
   // lib.optionalAttrs (withOtel || withSystemdJournal) {
-    cargoDeps = symlinkJoin {
-      name = "cargo-vendor-dir";
-      paths = [
-        (rustPlatform.fetchCargoVendor {
-          inherit (finalAttrs)
-            pname
-            version
-            src
-            cargoRoot
-            ;
-          hash = "sha256-mxFpT95e+NMqjJOIRqM+yKHGQHfpWmIFHqFNiiiqXOY=";
-        })
-        (rustPlatform.fetchCargoVendor {
-          pname = "${finalAttrs.pname}-nd-jf";
-          inherit (finalAttrs) version src;
-          cargoRoot = "${finalAttrs.cargoRoot}/jf";
-          hash = "sha256-6spr8WRt2G6tzaUQACxIcVMoDNKOFTg6rSPEOihMgLE=";
-        })
-      ];
-    };
     cargoRoot = "src/crates";
+    cargoDeps = rustPlatform.fetchCargoVendor {
+      inherit (finalAttrs)
+        pname
+        version
+        src
+        cargoRoot
+        ;
+      hash = "sha256-mxFpT95e+NMqjJOIRqM+yKHGQHfpWmIFHqFNiiiqXOY=";
+    };
+    cargoDepsNdJf = rustPlatform.fetchCargoVendor {
+      pname = "${finalAttrs.pname}-nd-jf";
+      inherit (finalAttrs) version src;
+      cargoRoot = "${finalAttrs.cargoRoot}/jf";
+      hash = "sha256-6spr8WRt2G6tzaUQACxIcVMoDNKOFTg6rSPEOihMgLE=";
+    };
   }
 )

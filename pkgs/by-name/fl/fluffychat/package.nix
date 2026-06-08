@@ -31,6 +31,7 @@ let
 in
 flutter341.buildFlutterApplication (
   rec {
+    passthru.vodozemac-wasm = vodozemac-wasm;
     pname = "fluffychat-${targetFlutterPlatform}";
     version = "2.6.0";
 

@@ -17,7 +17,6 @@
   rustc,
   rustPlatform,
   stdenv,
-  symlinkJoin,
   cargo,
 }:
 
@@ -60,42 +59,15 @@ stdenv.mkDerivation (finalAttrs: {
     fetchSubmodules = true;
   };
 
-  cargoDeps = symlinkJoin {
-    name = "stellar-core-${finalAttrs.version}-cargo-vendor-dir";
-    paths = [
-      (rustPlatform.fetchCargoVendor {
-        inherit (finalAttrs) src;
-        hash = "sha256-sm8cn288vb4aYJXNOwkjDmPQ8Ug0mnur5YcXH5sS2Sg=";
-      })
-    ]
-    ++
-      map
-        (
-          protocol:
-          rustPlatform.fetchCargoVendor {
-            pname = "stellar-core-${protocol}";
-            inherit (finalAttrs) version src;
-            cargoRoot = "src/rust/soroban/${protocol}";
-            hash =
-              {
-                p21 = "sha256-cUhi2YennW+tukwf0woP69bqf1ZMsQ4JDeNqpk0jYjg=";
-                p22 = "sha256-5mNAblS3TYXu5a1ThmIdbKC9hUg/3F8vUPvFex3G58U=";
-                p23 = "sha256-l1nqc4qrqWV8aKOd9NFUaOLw1Mags2znjbQixU5H3+Y=";
-                p24 = "sha256-P+Q8SNcuFX6diBYqGpkOwHtplK4y4PZxB+gj6MnpYDs=";
-                p25 = "sha256-9NhnB3bDQI1FLmr0zTYTjEYl8V8KteWbMefWObLDB/A=";
-                p26 = "sha256-OxkiWTzNtmYxB64OtLUwghAkcT//SnMZVfUXynFg2Bg=";
-              }
-              .${protocol};
-          }
-        )
-        [
-          "p21"
-          "p22"
-          "p23"
-          "p24"
-          "p25"
-          "p26"
-        ];
+  patches = [
+    # actually cd into the proper protol version directory before getting the dependencies
+    # so that the correct .cargo/config.toml is found
+    ./cargo-tree-cd.patch
+  ];
+
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs) pname version src;
+    hash = "sha256-sm8cn288vb4aYJXNOwkjDmPQ8Ug0mnur5YcXH5sS2Sg=";
   };
 
   strictDeps = true;
@@ -137,27 +109,55 @@ stdenv.mkDerivation (finalAttrs: {
     done
   '';
 
-  preConfigure = ''
-    # Due to https://github.com/NixOS/nixpkgs/issues/8567 we cannot rely on
-    # having the .git directory present, so directly provide the version
-    substituteInPlace src/Makefile.am --replace '$$vers' 'stellar-core ${finalAttrs.version}';
-    substituteInPlace src/Makefile.am \
-      --replace-fail 'CARGO=cargo +$(RUST_TOOLCHAIN_CHANNEL)' 'CARGO=cargo' \
-      --replace-fail \
-        'RUSTC_WRAPPER="$(RUSTC_WRAPPER)" CARGO_HTTP_MULTIPLEXING=false $(CARGO) install --force --locked --root $(RUST_BUILD_DIR) cxxbridge-cmd --version 1.0.68' \
-        'install -Dm755 ${lib.getExe cxxbridge-cmd} $(RUST_CXXBRIDGE)' \
-      --replace-fail \
-        '$(SOROBAN_LIBS_STAMP): $(wildcard rust/soroban/p*/Cargo.lock) $(ALL_SOROBAN_GIT_STATE_STAMPS) Makefile $(RUST_DEP_TREE_STAMP) $(SRC_RUST_FILES) $(RUST_TOOLCHAIN_FILE)' \
-        '$(SOROBAN_LIBS_STAMP): $(wildcard rust/soroban/p*/Cargo.lock) Makefile $(RUST_DEP_TREE_STAMP) $(SRC_RUST_FILES) $(RUST_TOOLCHAIN_FILE)'
-    patchShebangs hash-xdrs.sh src/test
+  preConfigure =
+    let
+      protocolCargoHashes = {
+        p21 = "sha256-cUhi2YennW+tukwf0woP69bqf1ZMsQ4JDeNqpk0jYjg=";
+        p22 = "sha256-5mNAblS3TYXu5a1ThmIdbKC9hUg/3F8vUPvFex3G58U=";
+        p23 = "sha256-l1nqc4qrqWV8aKOd9NFUaOLw1Mags2znjbQixU5H3+Y=";
+        p24 = "sha256-P+Q8SNcuFX6diBYqGpkOwHtplK4y4PZxB+gj6MnpYDs=";
+        p25 = "sha256-9NhnB3bDQI1FLmr0zTYTjEYl8V8KteWbMefWObLDB/A=";
+        p26 = "sha256-OxkiWTzNtmYxB64OtLUwghAkcT//SnMZVfUXynFg2Bg=";
+      };
+    in
+    (lib.concatMapAttrsStringSep "\n" (
+      protocol: hash:
+      let
+        cargoRoot = "src/rust/soroban/${protocol}";
+        protocolCargoDeps = rustPlatform.fetchCargoVendor {
+          pname = "stellar-core-${protocol}";
+          inherit (finalAttrs) version src;
+          inherit cargoRoot hash;
+        };
+      in
+      ''
+        pushd ${cargoRoot}
+        cargoDeps=${protocolCargoDeps} cargoSetupPostUnpackHook
+        popd
+        cargoRoot=${cargoRoot} cargoSetupPostPatchHook
+      ''
+    ) protocolCargoHashes)
+    + ''
+      # Due to https://github.com/NixOS/nixpkgs/issues/8567 we cannot rely on
+      # having the .git directory present, so directly provide the version
+      substituteInPlace src/Makefile.am --replace '$$vers' 'stellar-core ${finalAttrs.version}';
+      substituteInPlace src/Makefile.am \
+        --replace-fail 'CARGO=cargo +$(RUST_TOOLCHAIN_CHANNEL)' 'CARGO=cargo' \
+        --replace-fail \
+          'RUSTC_WRAPPER="$(RUSTC_WRAPPER)" CARGO_HTTP_MULTIPLEXING=false $(CARGO) install --force --locked --root $(RUST_BUILD_DIR) cxxbridge-cmd --version 1.0.68' \
+          'install -Dm755 ${lib.getExe cxxbridge-cmd} $(RUST_CXXBRIDGE)' \
+        --replace-fail \
+          '$(SOROBAN_LIBS_STAMP): $(wildcard rust/soroban/p*/Cargo.lock) $(ALL_SOROBAN_GIT_STATE_STAMPS) Makefile $(RUST_DEP_TREE_STAMP) $(SRC_RUST_FILES) $(RUST_TOOLCHAIN_FILE)' \
+          '$(SOROBAN_LIBS_STAMP): $(wildcard rust/soroban/p*/Cargo.lock) Makefile $(RUST_DEP_TREE_STAMP) $(SRC_RUST_FILES) $(RUST_TOOLCHAIN_FILE)'
+      patchShebangs hash-xdrs.sh src/test
 
-    # Everything needs to be staged in git because the build uses
-    # `git ls-files` to search for source files to compile.
-    git init
-    git add .
+      # Everything needs to be staged in git because the build uses
+      # `git ls-files` to search for source files to compile.
+      git init
+      git add .
 
-    ./autogen.sh
-  '';
+      ./autogen.sh
+    '';
 
   checkPhase = ''
     runHook preCheck

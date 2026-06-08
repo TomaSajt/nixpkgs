@@ -5,7 +5,6 @@
   fetchFromGitLab,
   rustPlatform,
   systemdMinimal,
-  symlinkJoin,
 
   # nativeBuildInputs
   blueprint-compiler,
@@ -81,6 +80,24 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-KETaCjKTxEvh3tgLzJw5PLJHAQivqXhGYcluvFhGGd8=";
   };
 
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs) pname version src;
+    hash = "sha256-XS+/gpCMIqDgFR6AjuT2q+p+85GklUuRhKWzaBfQjZg=";
+  };
+
+  cargoDepsMagpie = rustPlatform.fetchCargoVendor {
+    pname = "${finalAttrs.pname}-magpie";
+    inherit (finalAttrs) version src;
+    cargoRoot = "subprojects/magpie";
+    hash = "sha256-9YZ2dgIaq0AtS8QsIC/0cJlELIy/UbOvulgZFL/qRRs=";
+  };
+
+  patches = [
+    # actually change the directory while building magpie so that
+    # the cargo command can resolve the subproject's .cargo/config.toml file
+    ./magpie-pushd.patch
+  ];
+
   postPatch =
     # Prevent platform-linux/build.rs from downloading nvtop
     ''
@@ -119,21 +136,16 @@ stdenv.mkDerivation (finalAttrs: {
         --replace-fail "udevadm" "${lib.getExe' systemdMinimal "udevadm"}"
     '';
 
-  cargoDeps = symlinkJoin {
-    name = "cargo-vendor-dir";
-    paths = [
-      (rustPlatform.fetchCargoVendor {
-        inherit (finalAttrs) pname version src;
-        hash = "sha256-XS+/gpCMIqDgFR6AjuT2q+p+85GklUuRhKWzaBfQjZg=";
-      })
-      (rustPlatform.fetchCargoVendor {
-        pname = "${finalAttrs.pname}-magpie";
-        inherit (finalAttrs) version src;
-        sourceRoot = "${finalAttrs.src.name}/subprojects/magpie";
-        hash = "sha256-9YZ2dgIaq0AtS8QsIC/0cJlELIy/UbOvulgZFL/qRRs=";
-      })
-    ];
-  };
+  # cargoSetupPostPatchHook handles the main cargoDeps after postPatch
+  # so we'll use the next available time to handle cargoDepsMagpie
+  # cargoSetupPostUnpackHook puts its results into the directory it's being called from
+  # so this does not override the config generated for the main cargoDeps
+  preConfigure = ''
+    pushd subprojects/magpie
+    cargoDeps="$cargoDepsMagpie" cargoSetupPostUnpackHook
+    popd
+    cargoRoot=subprojects/magpie cargoSetupPostPatchHook
+  '';
 
   nativeBuildInputs = [
     cmake

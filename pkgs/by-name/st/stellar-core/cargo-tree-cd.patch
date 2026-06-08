@@ -1,0 +1,15 @@
+diff --git a/src/Makefile.am b/src/Makefile.am
+index a79ff23..5cc5ff5 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -251,7 +251,9 @@ $(RUST_DEP_TREE_STAMP): $(wildcard rust/soroban/*/Cargo.*) Makefile $(RUST_TOOLC
+ 	mkdir -p $(RUST_BUILD_DIR)/src/dep-trees
+ 	for proto in $(ALL_SOROBAN_PROTOCOLS); \
+ 	do \
+-		$(CARGO) tree --manifest-path $(top_srcdir)/src/rust/soroban/$${proto}/Cargo.toml --locked --package soroban-env-host --edges no-dev --target all \
++		(cd $(abspath $(top_srcdir))/src/rust/soroban/$${proto} ; \
++		$(CARGO) tree --locked --package soroban-env-host --edges no-dev --target all \
++		) \
+ 		| sed -e "s@$(abspath $(top_srcdir))/@@g" > $(RUST_BUILD_DIR)/src/dep-trees/$${proto}-actual.txt ; \
+ 		if ! diff -u $(top_srcdir)/src/rust/src/dep-trees/$${proto}-expect.txt $(RUST_BUILD_DIR)/src/dep-trees/$${proto}-actual.txt; \
+ 		then \

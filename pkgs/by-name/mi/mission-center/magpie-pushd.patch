@@ -1,0 +1,16 @@
+diff --git a/subprojects/magpie/src/meson.build b/subprojects/magpie/src/meson.build
+index 8dc228e..7ad2743 100644
+--- a/subprojects/magpie/src/meson.build
++++ b/subprojects/magpie/src/meson.build
+@@ -7,9 +7,10 @@ cargo_build = custom_target(
+     install : true,
+     install_dir : get_option('bindir'),
+     command : [
+-        'sh', '-c', 'env '
++        'sh', '-c', 'pushd ' + meson.project_source_root() +' && env '
+         + ' env '.join(cargo_env)
+         + ' ' + cargo_bin.full_path() + ' build ' + ' '.join(cargo_opt)
++        + ' && popd'
+         + ' ' + '&&'
+         + ' ' + 'cp ' + meson.project_build_root() + '/src' + '/' + build_opt + '/magpie' + ' ' + '@OUTPUT@'
+     ]
