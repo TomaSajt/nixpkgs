@@ -1,0 +1,48 @@
+diff --git a/package-lock.json b/package-lock.json
+index 1beb8ee..503f247 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -11,7 +11,7 @@
+       "license": "Apache-2.0",
+       "dependencies": {
+         "@simonwep/pickr": "^1.9.1",
+-        "better-sqlite3": "^12.9.0",
++        "better-sqlite3": "^12.11.1",
+         "bufferutil": "^4.1.0",
+         "comlink": "~4.3.1",
+         "crypto-js": "^4.2.0",
+@@ -3373,9 +3373,9 @@
+       "license": "MIT"
+     },
+     "node_modules/better-sqlite3": {
+-      "version": "12.9.0",
+-      "resolved": "https://registry.npmjs.org/better-sqlite3/-/better-sqlite3-12.9.0.tgz",
+-      "integrity": "sha512-wqUv4Gm3toFpHDQmaKD4QhZm3g1DjUBI0yzS4UBl6lElUmXFYdTQmmEDpAFa5o8FiFiymURypEnfVHzILKaxqQ==",
++      "version": "12.11.1",
++      "resolved": "https://registry.npmjs.org/better-sqlite3/-/better-sqlite3-12.11.1.tgz",
++      "integrity": "sha512-dq9AtApgg5PGFtBzPFSBl3HZQjHok5gaQCM6zh2Yk0aSmDCs1CbnVI8/HgASQkNKsWFpseIO9beg5xxpYhbIfA==",
+       "hasInstallScript": true,
+       "license": "MIT",
+       "dependencies": {
+@@ -3383,7 +3383,7 @@
+         "prebuild-install": "^7.1.1"
+       },
+       "engines": {
+-        "node": "20.x || 22.x || 23.x || 24.x || 25.x"
++        "node": "20.x || 22.x || 23.x || 24.x || 25.x || 26.x"
+       }
+     },
+     "node_modules/big.js": {
+diff --git a/package.json b/package.json
+index cc041c3..e0c8142 100644
+--- a/package.json
++++ b/package.json
+@@ -167,7 +167,7 @@
+   },
+   "dependencies": {
+     "@simonwep/pickr": "^1.9.1",
+-    "better-sqlite3": "^12.9.0",
++    "better-sqlite3": "^12.11.1",
+     "bufferutil": "^4.1.0",
+     "comlink": "~4.3.1",
+     "crypto-js": "^4.2.0",

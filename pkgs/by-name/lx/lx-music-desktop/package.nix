@@ -10,12 +10,12 @@
   makeWrapper,
   makeDesktopItem,
 
-  electron_40,
+  electron_42,
   commandLineArgs ? "",
 }:
 
 let
-  electron = electron_40;
+  electron = electron_42;
 in
 buildNpmPackage (finalAttrs: {
   pname = "lx-music-desktop";
@@ -51,6 +51,9 @@ buildNpmPackage (finalAttrs: {
   ];
 
   patches = [
+    # bump better-sqlite3 to support electron_42 target
+    ./electron-42.patch
+
     # set electron version and dist dir
     # disable before-pack: it would copy prebuilt libraries
     (replaceVars ./electron-builder.patch {
@@ -63,7 +66,7 @@ buildNpmPackage (finalAttrs: {
     copyDesktopItems
   ];
 
-  npmDepsHash = "sha256-iIymnYIAE8rFEa8I2nVt2JrMyRiZL5nBS+HfNoDN1Hk=";
+  npmDepsHash = "sha256-sGlgz+cwKSUo3A5uWcfVxn45uGO+fGyGVvy6KVnUJRo=";
 
   makeCacheWritable = true;
 
