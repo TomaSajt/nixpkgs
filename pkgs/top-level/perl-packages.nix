@@ -18429,6 +18429,7 @@ with self;
       url = "mirror://cpan/authors/id/J/JH/JHTHORSEN/JSON-Validator-5.14.tar.gz";
       hash = "sha256-YISl1AdeQhqTj/su6XuFBPqjXoZtD3tbWBETr17ijhs=";
     };
+    asd = true;
     buildInputs = [ TestDeep ];
     propagatedBuildInputs = [
       Mojolicious
