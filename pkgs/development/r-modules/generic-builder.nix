@@ -16,6 +16,8 @@ stdenv.mkDerivation (
   // {
     name = "r-${attrs.name or "${attrs.pname}-${attrs.version}"}";
 
+    strictDeps = attrs.strictDeps or true;
+
     nativeBuildInputs =
       (attrs.nativeBuildInputs or [ ])
       ++ [
