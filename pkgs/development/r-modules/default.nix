@@ -2380,15 +2380,6 @@ let
       preConfigure = "patchShebangs configure";
     });
 
-    cn_farms = old.cn_farms.overrideAttrs (attrs: {
-      postPatch = ''
-        # https://developer.r-project.org/blosxom.cgi/R-devel/NEWS/2025/01/08#n2025-01-08
-        substituteInPlace "src/sparse_farms.c" \
-        --replace-fail "Calloc" "R_Calloc" \
-        --replace-fail "Free" "R_Free"
-      '';
-    });
-
     covidsymptom = old.covidsymptom.overrideAttrs (attrs: {
       preConfigure = "rm R/covidsymptomdata.R";
     });
@@ -3166,18 +3157,15 @@ self
         name:
         if
           lib.elem name [
-            "redatamx" # "Andromeda" tries to download data?
-            "bigGP" # $out/library/Rmpi/libs/Rmpi.so: undefined symbol: mpi_universe_size
-            "arrow"
+            "redatamx" # PR: https://github.com/NixOS/nixpkgs/pull/542296
             "prqlr" # $out/library/00LOCK-prqlr/00new/prqlr/libs/prqlr.so: cannot enable executable stack as shared object requires: Invalid argument
             "cn_farms" # sparse_farms.c:111:31: error: implicit declaration of function 'R_R_Calloc'; did you mean 'R_Calloc'?
 
-            "ROracle" # unfree
+            # Rmpi breakage:
+            "Rmpi"
+            "bigGP"
 
-            # long builds:
-            #"opencv"
-            #"FlexReg"
-            #"networkscaleup"
+            "ROracle" # unfree
 
             # needs to be fixed:
             "iscream" # Rhtslib patch for strictDeps?
