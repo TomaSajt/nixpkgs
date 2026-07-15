@@ -1117,7 +1117,7 @@ let
     ];
     V8 = with pkgs; [
       nodejs-slim_22.libv8
-      icu78 # use same icu version as in pkgs/development/web/nodejs/nodejs.nix
+      icu # use same icu version as in pkgs/development/web/nodejs/nodejs.nix
     ];
     VariantAnnotation = with pkgs; [
       zlib.dev
@@ -3181,9 +3181,9 @@ self
             "ROracle" # unfree
 
             # long builds:
-            "opencv"
-            "FlexReg"
-            "networkscaleup"
+            #"opencv"
+            #"FlexReg"
+            #"networkscaleup"
 
             # needs to be fixed:
             "iscream" # Rhtslib patch for strictDeps?
