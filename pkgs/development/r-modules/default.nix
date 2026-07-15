@@ -3165,3 +3165,39 @@ let
   };
 in
 self
+// {
+  _debug = lib.filter (pkg: pkg != null) (
+    lib.map
+      (
+        name:
+        if
+          lib.elem name [
+            "redatamx" # "Andromeda" tries to download data?
+            "bigGP" # $out/library/Rmpi/libs/Rmpi.so: undefined symbol: mpi_universe_size
+            "arrow"
+            "prqlr" # $out/library/00LOCK-prqlr/00new/prqlr/libs/prqlr.so: cannot enable executable stack as shared object requires: Invalid argument
+            "cn_farms" # sparse_farms.c:111:31: error: implicit declaration of function 'R_R_Calloc'; did you mean 'R_Calloc'?
+
+            "ROracle" # unfree
+
+            # long builds:
+            "opencv"
+            "FlexReg"
+            "networkscaleup"
+
+            # needs to be fixed:
+            "iscream" # Rhtslib patch for strictDeps?
+          ]
+          || (self.${name}.meta.broken or false)
+        then
+          null
+        else
+          self.${name}
+      )
+      (
+        lib.attrNames packagesWithNativeBuildInputs
+        ++ lib.attrNames packagesWithBuildInputs
+        ++ lib.attrNames (otherOverrides self self)
+      )
+  );
+}
