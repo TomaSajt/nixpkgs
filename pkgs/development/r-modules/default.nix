@@ -3164,3 +3164,70 @@ let
   };
 in
 self
+// {
+  _debug = lib.filter (pkg: pkg != null) (
+    lib.map
+      (
+        name:
+        if
+          lib.elem name [
+            "redatamx" # PR: https://github.com/NixOS/nixpkgs/pull/542296
+            "prqlr" # $out/library/00LOCK-prqlr/00new/prqlr/libs/prqlr.so: cannot enable executable stack as shared object requires: Invalid argument
+
+            "ROracle" # unfree
+
+            # needs to be fixed:
+            "iscream" # Rhtslib patch for strictDeps?
+
+            ## Removed packages
+            # yanked src (bioc stuff)
+            "AneuFinder" # also AneuFinderData
+            "PICS"
+            "ArrayExpressHTS"
+            "PING"
+            "TransView"
+            "cisPath"
+            "genoCN"
+            "gpuMagic"
+            "qckitfastq"
+            "qrqc"
+            "rGADEM"
+            "seqTools"
+            "seqbias"
+            "trigger"
+
+            # actually broken
+            "Rhpc"
+            "SAVE"
+            "PopGenome"
+            "R2SWF"
+            "RGtk2"
+            "RandomFieldsUtils"
+            "SamplerCompare"
+            "bgx"
+            "cairoDevice"
+            "chebpol"
+            "hadron"
+            "largeList"
+            "rJPSGCS"
+            "rgdal"
+            "rgeos"
+            "rsgeo"
+            "gfilogisreg"
+
+            "BitSeq" # depends on zlibbioc which is yanked
+
+            "rGEDI" # depends on rgdal
+          ]
+        then
+          null
+        else
+          self.${name}
+      )
+      (
+        lib.attrNames packagesWithNativeBuildInputs
+        ++ lib.attrNames packagesWithBuildInputs
+        ++ lib.attrNames (otherOverrides self self)
+      )
+  );
+}
