@@ -3172,6 +3172,10 @@ self
             # needs to be fixed:
             "iscream" # Rhtslib patch for strictDeps?
 
+            "biplotbootGUI"
+            "cncaGUI"
+            "multibiplotGUI"
+
             ## Removed packages
             # yanked src (bioc stuff)
             "AneuFinder" # also AneuFinderData
@@ -3188,6 +3192,7 @@ self
             "seqTools"
             "seqbias"
             "trigger"
+            "interactiveDisplay"
 
             # actually broken
             "Rhpc"
@@ -3207,11 +3212,32 @@ self
             "rgeos"
             "rsgeo"
             "gfilogisreg"
+            "RandomFields"
+            "RandomFieldsUtils"
+            "exactLoglinTest"
+            "dynamicGraph"
+            "likeLTD"
+
+            # lazy loading failed?
+            "GGEBiplotGUI"
+            "HiveR"
+            "VecStatGraphs3D"
+            "analogueExtra"
+
+            "EasyqpcR" # missing R dep?
 
             "BitSeq" # depends on zlibbioc which is yanked
 
             "rGEDI" # depends on rgdal
+            "gWidgets2RGtk2" # depends on RGtk2
+            "BCA" # depends on clv
+            "Demerelate" # depends on rts
+            "DeducerSpatial" # depends on maptools
+            "UScensus2010" # depends on maptools
+            "inlmisc" # depends on rgeos
+            "RSurvey" # depends on inlmisc
           ]
+        #|| (self.${name}.meta.broken or false)
         then
           null
         else
@@ -3221,6 +3247,11 @@ self
         lib.attrNames packagesWithNativeBuildInputs
         ++ lib.attrNames packagesWithBuildInputs
         ++ lib.attrNames (otherOverrides self self)
+        ++ packagesRequiringX
+        ++ packagesRequiringHome
+        ++ packagesToSkipCheck
+        ++ lib.attrNames packagesWithRDepends
+        ++ lib.attrNames packagesWithMaintainers
       )
   );
 }
