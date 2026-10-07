@@ -222,10 +222,6 @@ def download_file_with_checksum(session: requests.Session, url: str, destination
 # Fetch the config.json file and get the .dl key from it
 # See: https://doc.rust-lang.org/cargo/reference/registry-index.html#index-configuration
 def fetch_dl_for_registry_source(source: RegistrySource, session: requests.Session) -> str:
-    # We hardcode the .dl value for crates-io registries to avoid having to clone the git repo, saving a few seconds
-    if source.ind == 0:
-        return "https://static.crates.io/crates"
-
     eprint(f'Fetching .dl value for registry "{source.url}"')
     if source.is_sparse:
         url = source.url + "/config.json"
@@ -321,7 +317,7 @@ def make_tarball_relpath(pkg: RegistryPackage) -> Path:
     return reldir / filename
 
 
-def create_vendor_staging(lockfile_path: Path, out_dir: Path) -> None:
+def create_vendor_staging(lockfile_path: Path, out_dir: Path, registry_dl_overrides_path: Path) -> None:
     lockfile = load_lockfile(lockfile_path)
 
     out_dir.mkdir(exist_ok=True)
@@ -337,9 +333,16 @@ def create_vendor_staging(lockfile_path: Path, out_dir: Path) -> None:
 
     session = create_http_session()
 
+    with registry_dl_overrides_path.open("rb") as f:
+        registry_dl_overrides: dict[str, str] = json.load(f)
+
     raw_registry_source_to_dl: dict[str, str] = {}
     for source in registry_sources:
-        dl = fetch_dl_for_registry_source(source, session)
+        if source.raw in registry_dl_overrides:
+            dl = registry_dl_overrides[source.raw]
+        else:
+            dl = fetch_dl_for_registry_source(source, session)
+
         eprint(f'Using .dl value of "{dl}" for registry "{source.raw}"')
         raw_registry_source_to_dl[source.raw] = dl
 
@@ -582,7 +585,8 @@ def main() -> None:
     subcommand_func_dict = {
         "create-vendor-staging": lambda: create_vendor_staging(
             lockfile_path=Path(sys.argv[2]),
-            out_dir=Path(sys.argv[3])
+            out_dir=Path(sys.argv[3]),
+            registry_dl_overrides_path=Path(sys.argv[4])
         ),
         "create-vendor": lambda: create_vendor(
             vendor_staging_dir=Path(sys.argv[2]),
