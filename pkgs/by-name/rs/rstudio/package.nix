@@ -26,7 +26,7 @@
   zip,
 
   boost191,
-  electron_42,
+  electron_43,
   fontconfig,
   gnumake,
   hunspellDicts,
@@ -45,7 +45,7 @@
 }:
 
 let
-  electron = electron_42;
+  electron = electron_43;
   boost = boost191;
 
   mathJax27Src = fetchzip {
@@ -69,9 +69,9 @@ let
     owner = "quarto-dev";
     repo = "quarto";
     # Note: rev should ideally be the last commit of the release/rstudio-[codename] branch
-    # Last updated: 2026-09-11 to release/rstudio-autumn-hawkbit branch
-    rev = "828ae28e53b796fb95a33bd7f3c7c109e0709649";
-    hash = "sha256-xkNCbGrMUSkPBSkMqjOz2jljw71TyPThUfd79XYM+WE=";
+    # Last updated: 2026-10-22 to release/rstudio-blue-mistflower branch
+    rev = "2d5a23d918079ce38f584a31b4639aa769379d64";
+    hash = "sha256-lN1QzCSM/KNBUIK4wJpOXJzpoUVJo1hVQMA4UUacPRY=";
   };
 
   hunspellDictionaries = lib.filter lib.isDerivation (lib.unique (lib.attrValues hunspellDicts));
@@ -99,13 +99,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rstudio";
-  version = "2026.09.0+174";
+  version = "2026.10.0+233";
 
   src = fetchFromGitHub {
     owner = "rstudio";
     repo = "rstudio";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-67HT2JT0kPXqzCfcgtfRZZ/zM35ZWULb0ooCjagzr3w=";
+    hash = "sha256-ccL+Tlotl3Kj2sn6GyhG0aWtC1nPV8B3FrpRFID1hq4=";
   };
 
   # sources fetched into _deps via cmake's FetchContent
@@ -228,6 +228,7 @@ stdenv.mkDerivation (finalAttrs: {
     ./dont-yarn-install.patch
     ./dont-npm-ci.patch
     ./fix-darwin.patch
+    ./fix-lockfile.patch
   ];
 
   postPatch = ''
@@ -257,7 +258,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   yarnOfflineCache = fetchYarnDeps {
     src = quartoSrc;
-    hash = "sha256-4mPc2gNlXTvAWLdWViceTPk5lizKST7iBMZ42ZcrEZA=";
+    hash = "sha256-aBo6kh/+pzkKeg147ZsGC7BR9UQP36UwGPHS9LGW/wg=";
   };
 
   dontYarnInstallDeps = true; # will call manually in preConfigure
@@ -269,11 +270,14 @@ stdenv.mkDerivation (finalAttrs: {
 
   makeCacheWritable = true;
 
+  npmDepsFetcherVersion = 2;
+
   npmDeps = fetchNpmDeps {
+    npmDepsFetcherVersion = 2;
     name = "rstudio-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src patches;
     postPatch = "cd ${finalAttrs.npmRoot}";
-    hash = "sha256-8tPmNqcte0Pxhxp/PSx6vaZihXMZvPHRBX4428H3N/Q=";
+    hash = "sha256-hOE+pYEFQWhpEbpD1LjcNbJSrZIMwX6oZtaDWoSXNns=";
   };
 
   preConfigure = ''
@@ -311,7 +315,7 @@ stdenv.mkDerivation (finalAttrs: {
     # node used by cmake and node used for distribution
     # version in cmake/globals.cmake
     RSTUDIO_NODE_VERSION="22.22.2"
-    RSTUDIO_INSTALLED_NODE_VERSION="22.23.2"
+    RSTUDIO_INSTALLED_NODE_VERSION="24.21.0"
 
     mkdir -p dependencies/common/node
     ln -s ${nodejs} dependencies/common/node/$RSTUDIO_NODE_VERSION
