@@ -1,117 +1,165 @@
 {
   lib,
   stdenv,
-  fetchurl,
-
-  autoPatchelfHook,
-  dpkg,
-  makeBinaryWrapper,
-  makeWrapper,
-  undmg,
-  wrapGAppsHook3,
-
-  glib-networking,
-  gtk3,
-  libappindicator,
-  libnotify,
-  libsoup_3,
-  mpv-unwrapped,
-  xdg-user-dirs,
-  webkitgtk_4_1,
+  fetchFromGitHub,
+  gradle_9,
+  jdk21,
+  cargo,
+  writeText,
+  rustPlatform,
 }:
 
+let
+  gradle = gradle_9;
+  jdk = jdk21;
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "spotube";
-  version = "5.1.2";
+  version = "6.0.0-beta.0";
 
-  src = finalAttrs.passthru.sources.${stdenv.hostPlatform.system};
+  src = fetchFromGitHub {
+    owner = "team-spotube";
+    repo = "spotube";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-nR2/R6Aa87Y1Mz66iKcOFbeEvYoDO0LU0I6sXw7KpPY=";
+  };
 
-  sourceRoot = lib.optionalString stdenv.hostPlatform.isDarwin ".";
+  patches = [ ./a.patch ];
 
-  nativeBuildInputs =
-    lib.optionals stdenv.hostPlatform.isLinux [
-      autoPatchelfHook
-      dpkg
-      makeWrapper
-      wrapGAppsHook3
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      undmg
-      makeBinaryWrapper
-    ];
+  postPatch = ''
+    substituteInPlace settings.gradle.kts \
+      --replace-fail 'include(":js_plugin_example")' ""
+  '';
 
-  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
-    glib-networking
-    gtk3
-    libappindicator
-    libnotify
-    libsoup_3
-    webkitgtk_4_1
+  mitmCache = gradle.fetchDeps {
+    pkg = finalAttrs.finalPackage;
+    data = ./deps.json;
+  };
+
+  cargoRoot = "composeApp";
+
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs)
+      pname
+      version
+      src
+      cargoRoot
+      ;
+    hash = "sha256-U93ECB9G/qi8h8YQcEV/wSEWOwG+72/TVGcQ8ydcgEE=";
+  };
+
+  nativeBuildInputs = [
+    gradle
+    jdk
+    cargo
+    rustPlatform.cargoSetupHook
   ];
 
-  dontWrapGApps = true;
+  # must not be named "gradleInitScript"
+  gradleInitScriptV2 = writeText "init-script.gradle.kts" ''
 
-  installPhase = ''
-    runHook preInstall
-  ''
-  + lib.optionalString stdenv.hostPlatform.isLinux ''
-    mkdir -p $out
-    cp -r usr/* $out
-  ''
-  + lib.optionalString stdenv.hostPlatform.isDarwin ''
-    mkdir -p $out/Applications
-    cp -r Spotube.app $out/Applications
-    makeBinaryWrapper $out/Applications/Spotube.app/Contents/MacOS/Spotube $out/bin/spotube
-  ''
-  + ''
-    runHook postInstall
+    /*
+    gradle.projectsLoaded {
+      rootProject.allprojects {
+        task nixDownloadDepsV2 {
+          notCompatibleWithConfigurationCache("idk")
+          doLast {
+            project.configurations.findAll { it.canBeResolved }.each { it.resolve() }
+            project.buildscript.configurations.findAll { it.canBeResolved }.each { it.resolve() }
+          }
+        }
+      }
+    }
+    */
+
+    /*
+    import org.gradle.api.artifacts.VersionCatalogsExtension
+    gradle.rootProject {
+      tasks.register("fetchAll") {
+        doLast {
+          val catalog = extensions
+            .getByType<VersionCatalogsExtension>()
+            .named("libs")
+
+          catalog.libraryAliases.forEach {
+            println("$it: ''${catalog.findLibrary(it).get().get()}")
+          }
+
+          catalog.versionAliases.forEach {
+            println("$it: ''${catalog.findVersion(it).get().get().requiredVersion}")
+          }
+
+          catalog.pluginAliases.forEach {
+            println("$it: ''${catalog.findPlugin(it).get().get()}")
+          }
+        }
+      }
+    }
+    */
+
+
+
+
+    import org.gradle.api.artifacts.VersionCatalogsExtension
+
+    gradle.allprojects {
+        val project = this
+
+        project.tasks.register("resolveVersionCatalog") {
+            group = "help"
+            description = "Resolves all dependencies from the version catalog."
+
+            doLast {
+                val catalogs = project.extensions
+                    .getByType<VersionCatalogsExtension>()
+
+                val libs = catalogs.named("libs")
+
+                val configuration = project.configurations.maybeCreate(
+                    "resolveVersionCatalog"
+                ).apply {
+                    isCanBeResolved = true
+                    isCanBeConsumed = false
+                }
+
+                libs.libraryAliases.forEach { alias ->
+                    configuration.dependencies.add(
+                        libs.findLibrary(alias).get().get()
+                    )
+                }
+
+                configuration.resolve()
+            }
+        }
+    }
+
   '';
 
-  postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
-    makeWrapper $out/share/spotube/spotube $out/bin/spotube \
-      "''${gappsWrapperArgs[@]}" \
-      --prefix LD_LIBRARY_PATH : $out/share/spotube/lib:${lib.makeLibraryPath [ mpv-unwrapped ]} \
-      --prefix PATH : ${lib.makeBinPath [ xdg-user-dirs ]}
+  gradleUpdateScript = ''
+    runHook preBuild
+    runHook preGradleUpdate
+
+    #gradle --init-script "$gradleInitScriptV2" :nixDownloadDepsV2
+    gradle --init-script "$gradleInitScriptV2" resolveVersionCatalog
+    #gradle tasks
+
+    runHook postGradleUpdate
   '';
 
-  passthru.sources =
-    let
-      fetchArtifact =
-        { suffix, hash }:
-        fetchurl {
-          name = "Spotube-${finalAttrs.version}-${suffix}";
-          url = "https://github.com/KRTirtho/spotube/releases/download/v${finalAttrs.version}/Spotube-${suffix}";
-          inherit hash;
-        };
-    in
-    {
-      "aarch64-linux" = fetchArtifact {
-        suffix = "linux-aarch64.deb";
-        hash = "sha256-cb9qPNJ1wB3zURvBCLEJIr+L4BGYwtgjAezSRm4QQDE=";
-      };
-      "x86_64-linux" = fetchArtifact {
-        suffix = "linux-x86_64.deb";
-        hash = "sha256-FEb5mPmGOAMw4nnFJ0kC+ymg4zBdUXWjvIO0sGOS6M0=";
-      };
-      "aarch64-darwin" = fetchArtifact {
-        suffix = "macos-universal.dmg";
-        hash = "sha256-J2J9/UQZAECvGmumqGzcRFA5kpakOmFpQKlK5oesCRM=";
-      };
-    };
+  #gradleBuildTask = ":composeApp:run";
+  gradleBuildTask = ":composeApp:createGraalvmNativeDistributable";
 
   meta = {
-    description = "Open source, cross-platform Spotify client compatible across multiple platforms";
-    longDescription = ''
-      Spotube is an open source, cross-platform Spotify client compatible across
-      multiple platforms utilizing Spotify's data API and YouTube (or Piped.video or JioSaavn)
-      as an audio source, eliminating the need for Spotify Premium
-    '';
-    downloadPage = "https://github.com/KRTirtho/spotube/releases";
-    homepage = "https://spotube.krtirtho.dev/";
-    license = lib.licenses.bsdOriginal;
+    description = "Open source music streaming app for both desktop and mobile";
+    downloadPage = "https://github.com/team-spotube/spotube/releases";
+    homepage = "https://spotube.cc/";
+    license = lib.licenses.agpl3Plus;
     mainProgram = "spotube";
     maintainers = with lib.maintainers; [ tomasajt ];
-    platforms = lib.attrNames finalAttrs.passthru.sources;
-    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
+    sourceProvenance = with lib.sourceTypes; [
+      fromSource
+      binaryBytecode
+    ];
   };
 })
