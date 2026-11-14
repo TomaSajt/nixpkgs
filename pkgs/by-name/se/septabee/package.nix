@@ -63,16 +63,18 @@ stdenv.mkDerivation (finalAttrs: {
   desktopItems = [
     (makeDesktopItem {
       name = "septabee";
-      desktopName = "SEPTABEE";
+      #desktopName = "SEPTABEE";
       exec = "septabee";
-      icon = "septabee";
-      categories = [
-        "AudioVideo"
-        "Audio"
-        "Music"
-        "Midi"
-      ];
-      genericName = "Septabee Digital Audio Workstation";
+      #icon = "septabee";
+      /*
+        categories = [
+          "AudioVideo"
+          "Audio"
+          "Music"
+          "Midi"
+        ];
+        genericName = "Septabee Digital Audio Workstation";
+      */
     })
   ];
 
