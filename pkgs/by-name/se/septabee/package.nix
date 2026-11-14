@@ -66,7 +66,7 @@ stdenv.mkDerivation (finalAttrs: {
       desktopName = "s e p t a b e e";
       exec = "element-desktop";
       icon = "septabee";
-      description = finalAttrs.meta.description;
+      comment = finalAttrs.meta.description;
       categories = [
         "AudioVideo"
         "Audio"
