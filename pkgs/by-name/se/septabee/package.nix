@@ -63,7 +63,7 @@ stdenv.mkDerivation (finalAttrs: {
   desktopItems = [
     (makeDesktopItem {
       name = "septabee";
-      #desktopName = "SEPTABEE";
+      desktopName = "s e p t a b e e";
       exec = "septabee";
       #icon = "septabee";
       /*
